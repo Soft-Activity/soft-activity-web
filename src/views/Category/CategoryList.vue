@@ -8,7 +8,6 @@ import {
   ElForm,
   ElFormItem,
   ElInput,
-  ElSwitch,
   ElMessageBox,
   ElMessage
 } from 'element-plus'
@@ -21,7 +20,6 @@ interface Category {
   name: string
   description: string
   activityCount: number
-  status: number
 }
 
 const { push } = useRouter()
@@ -32,22 +30,19 @@ const categories = ref<Category[]>([
     id: 1,
     name: '学术讲座',
     description: '包括各类学术报告、研讨会等',
-    activityCount: 12,
-    status: 1
+    activityCount: 12
   },
   {
     id: 2,
     name: '文体活动',
     description: '运动会、文艺表演等',
-    activityCount: 8,
-    status: 1
+    activityCount: 8
   },
   {
     id: 3,
     name: '志愿服务',
     description: '社会实践、公益活动等',
-    activityCount: 5,
-    status: 0
+    activityCount: 5
   }
 ])
 
@@ -59,12 +54,10 @@ const form = ref<{
   id?: number
   name: string
   description: string
-  status: boolean
 }>({
   id: undefined,
   name: '',
-  description: '',
-  status: true
+  description: ''
 })
 
 const rules: FormRules = {
@@ -78,8 +71,7 @@ const handleAdd = () => {
   form.value = {
     id: undefined,
     name: '',
-    description: '',
-    status: true
+    description: ''
   }
 }
 
@@ -89,8 +81,7 @@ const handleEdit = (category: Category) => {
   form.value = {
     id: category.id!,
     name: category.name,
-    description: category.description,
-    status: category.status === 1
+    description: category.description
   }
 }
 
@@ -126,9 +117,6 @@ const submitForm = async () => {
         <template #header>
           <div class="card-header">
             <span class="category-name">{{ category.name }}</span>
-            <ElTag :type="category.status ? 'success' : 'info'" size="small">
-              {{ category.status ? '启用' : '禁用' }}
-            </ElTag>
           </div>
         </template>
 
@@ -156,9 +144,6 @@ const submitForm = async () => {
             :rows="3"
             placeholder="请输入分类描述"
           />
-        </ElFormItem>
-        <ElFormItem label="状态">
-          <ElSwitch v-model="form.status" />
         </ElFormItem>
       </ElForm>
       <template #footer>
