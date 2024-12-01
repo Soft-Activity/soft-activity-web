@@ -93,7 +93,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'HomePage',
         component: () => import('@/views/Home/HomePage.vue'),
         meta: {
-          title: '首页'
+          title: '首页',
+          icon: 'carbon:home'
         }
       }
     ]
@@ -112,7 +113,8 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'CategoryList',
         component: () => import('@/views/Category/CategoryList.vue'),
         meta: {
-          title: '分类列表'
+          title: '分类列表',
+          icon: 'carbon:category'
         }
       }
     ]
