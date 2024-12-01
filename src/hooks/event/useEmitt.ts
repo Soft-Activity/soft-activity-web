@@ -18,6 +18,10 @@ export const useEmitt = (option?: Option) => {
   }
 
   return {
-    emitter
+    emitter,
+    on: emitter.on,
+    off: emitter.off,
+    emit: emitter.emit,
+    all: emitter.all
   }
 }

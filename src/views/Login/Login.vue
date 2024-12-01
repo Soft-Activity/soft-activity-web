@@ -56,9 +56,9 @@ const themeChange = () => {
             >
               <img src="@/assets/svgs/login-box-bg.svg" key="1" alt="" class="w-350px" />
               <div class="text-3xl text-white" key="2">{{ t('login.welcome') }}</div>
-              <div class="mt-5 font-normal text-white text-14px" key="3">
-                {{ t('login.message') }}
-              </div>
+              <div class="mt-5 font-normal text-white text-14px" key="3"
+                >一款功能强大、界面优雅的活动管理系统。为您提供活动策划、报名管理、数据分析等全方位服务，让活动管理变得轻松高效。</div
+              >
             </TransitionGroup>
           </div>
         </div>

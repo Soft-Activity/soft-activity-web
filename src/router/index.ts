@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import type { App } from 'vue'
-import { Layout, getParentLayout } from '@/utils/routerHelper'
+import { Layout } from '@/utils/routerHelper'
 import { useI18n } from '@/hooks/web/useI18n'
 
 const { t } = useI18n()
@@ -10,7 +10,7 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/',
     component: Layout,
-    redirect: '/level',
+    redirect: '/home',
     name: 'Root',
     meta: {
       hidden: true
@@ -44,6 +44,29 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     }
   },
   {
+    path: '/personal',
+    component: Layout,
+    redirect: '/personal/personal-center',
+    name: 'Personal',
+    meta: {
+      title: '个人中心',
+      hidden: true,
+      canTo: true
+    },
+    children: [
+      {
+        path: 'personal-center',
+        component: () => import('@/views/PersonalCenter/PersonalCenter.vue'),
+        name: 'PersonalCenter',
+        meta: {
+          title: '个人中心',
+          hidden: true,
+          canTo: true
+        }
+      }
+    ]
+  },
+  {
     path: '/404',
     component: () => import('@/views/Error/404.vue'),
     name: 'NoFind',
@@ -57,60 +80,39 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
 
 export const asyncRouterMap: AppRouteRecordRaw[] = [
   {
-    path: '/level',
+    path: '/home',
     component: Layout,
-    redirect: '/level/menu1/menu1-1/menu1-1-1',
-    name: 'Level',
+    name: 'Home',
     meta: {
-      title: '多级列表1111',
-      icon: 'carbon:skill-level-advanced'
+      title: '首页',
+      icon: 'carbon:home'
     },
     children: [
       {
-        path: 'menu1',
-        name: 'Menu1',
-        component: getParentLayout(),
-        redirect: '/level/menu1/menu1-1/menu1-1-1',
+        path: '',
+        name: 'HomePage',
+        component: () => import('@/views/Home/HomePage.vue'),
         meta: {
-          title: t('router.menu1')
-        },
-        children: [
-          {
-            path: 'menu1-1',
-            name: 'Menu11',
-            component: getParentLayout(),
-            redirect: '/level/menu1/menu1-1/menu1-1-1',
-            meta: {
-              title: t('router.menu11'),
-              alwaysShow: true
-            },
-            children: [
-              {
-                path: 'menu1-1-1',
-                name: 'Menu111',
-                component: () => import('@/views/Level/Menu111.vue'),
-                meta: {
-                  title: t('router.menu111')
-                }
-              }
-            ]
-          },
-          {
-            path: 'menu1-2',
-            name: 'Menu12',
-            component: () => import('@/views/Level/Menu12.vue'),
-            meta: {
-              title: t('router.menu12')
-            }
-          }
-        ]
-      },
+          title: '首页'
+        }
+      }
+    ]
+  },
+  {
+    path: '/category',
+    component: Layout,
+    name: 'Category',
+    meta: {
+      title: '分类管理',
+      icon: 'carbon:category'
+    },
+    children: [
       {
-        path: 'menu2',
-        name: 'Menu2',
-        component: () => import('@/views/Level/Menu2.vue'),
+        path: 'list',
+        name: 'CategoryList',
+        component: () => import('@/views/Category/CategoryList.vue'),
         meta: {
-          title: t('router.menu2')
+          title: '分类列表'
         }
       }
     ]
@@ -118,22 +120,88 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
   {
     path: '/activity',
     component: Layout,
-    redirect: '/activity/list',
     name: 'Activity',
     meta: {
-      title: '活动',
-      icon: 'carbon:skill-level-advanced'
+      title: '活动管理',
+      icon: 'carbon:activity'
     },
     children: [
       {
         path: 'list',
         name: 'ActivityList',
-        component: getParentLayout(),
-        redirect: '/activity/list',
+        component: () => import('@/views/Activity/ActivityList.vue'),
         meta: {
           title: '活动列表'
-        },
-        components: () => import('@/views/Activity/ActivityList.vue')
+        }
+      },
+      {
+        path: 'add',
+        name: 'ActivityAdd',
+        component: () => import('@/views/Activity/ActivityAdd.vue'),
+        meta: {
+          title: '新建活动'
+        }
+      },
+      {
+        path: 'detail',
+        name: 'ActivityDetail',
+        component: () => import('@/views/Activity/ActivityDetail.vue'),
+        meta: {
+          title: '活动详情',
+          noTagsView: true,
+          noCache: true,
+          hidden: true,
+          canTo: true,
+          activeMenu: '/activity/list'
+        }
+      },
+      {
+        path: 'edit',
+        name: 'ActivityEdit',
+        component: () => import('@/views/Activity/ActivityEdit.vue'),
+        meta: {
+          title: '活动修改',
+          noTagsView: true,
+          noCache: true,
+          hidden: true,
+          canTo: true,
+          activeMenu: '/activity/list'
+        }
+      }
+    ]
+  },
+  {
+    path: '/user',
+    component: Layout,
+    name: 'User',
+    meta: {
+      title: '用户管理',
+      icon: 'carbon:user'
+    },
+    children: [
+      {
+        path: 'roles',
+        name: 'RoleList',
+        component: () => import('@/views/User/RoleList.vue'),
+        meta: {
+          title: '角色列表'
+        }
+      },
+      {
+        path: 'users',
+        name: 'UserList',
+        component: () => import('@/views/User/UserList.vue'),
+        meta: {
+          title: '用户列表'
+        }
+      },
+      {
+        path: 'students',
+        name: 'StudentList',
+        component: () => import('@/views/User/StudentList.vue'),
+        meta: {
+          title: '学生列表'
+        }
       }
     ]
   }
