@@ -60,6 +60,14 @@ export const useUserStore = defineStore('user', {
     },
     setRoleRouters(roleRouters: string[] | AppCustomRouteRecordRaw[]) {
       this.roleRouters = roleRouters
+      if (this.userInfo) {
+        this.userInfo.roles = Array.isArray(roleRouters)
+          ? roleRouters.map((route) => (typeof route === 'string' ? route : route.name))
+          : []
+        if (this.userInfo.roles.length === 0) {
+          this.userInfo.roles.push('超级管理员')
+        }
+      }
     },
     logoutConfirm() {
       const { t } = useI18n()

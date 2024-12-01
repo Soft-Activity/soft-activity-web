@@ -3,7 +3,7 @@ import { ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useDesign } from '@/hooks/web/useDesign'
 import LockDialog from './components/LockDialog.vue'
-import { ref, computed } from 'vue'
+import { ref, computed, Ref } from 'vue'
 import LockPage from './components/LockPage.vue'
 import { useLockStore } from '@/store/modules/lock'
 import { useUserStore } from '@/store/modules/user'
@@ -39,6 +39,11 @@ const toDocument = () => {
 const toPage = (path: string) => {
   push(path)
 }
+
+const userRoles: Ref<string[]> = computed(() => {
+  const roles = userStore.getUserInfo?.roles || []
+  return roles.length ? roles : ['超级管理员']
+})
 </script>
 
 <template>
@@ -60,9 +65,11 @@ const toPage = (path: string) => {
             {{ '个人中心' }}
           </div>
         </ElDropdownItem>
-        <!-- <ElDropdownItem>
-          <div @click="toDocument">{{ t('common.document') }}</div>
-        </ElDropdownItem> -->
+        <template v-for="(role, index) in userRoles" :key="role">
+          <ElDropdownItem :divided="index === 0">
+            <div>{{ role }}</div>
+          </ElDropdownItem>
+        </template>
         <ElDropdownItem divided>
           <div @click="lockScreen">{{ t('lock.lockScreen') }}</div>
         </ElDropdownItem>
