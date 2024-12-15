@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加角色 POST /role/add */
 export async function addRole(body: API.Role, options?: { [key: string]: any }) {

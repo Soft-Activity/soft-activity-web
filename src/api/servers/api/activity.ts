@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加 POST /activity/add */
 export async function addActivity(body: API.Activity, options?: { [key: string]: any }) {

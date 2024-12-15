@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加报名表 POST /registration/add */
 export async function addRegistration(body: API.Registration, options?: { [key: string]: any }) {

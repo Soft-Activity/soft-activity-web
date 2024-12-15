@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加活动分类表 POST /activityCategory/add */
 export async function addActivityCategory(

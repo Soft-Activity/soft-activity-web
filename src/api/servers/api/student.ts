@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加学生 POST /student/add */
 export async function addStudent(body: API.Student, options?: { [key: string]: any }) {

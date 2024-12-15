@@ -20,6 +20,16 @@ interface RequestConfig<T = AxiosResponse> extends AxiosRequestConfig {
   interceptors?: RequestInterceptors<T>
 }
 
+export interface AxiosConfig extends Omit<RequestConfig, 'url'> {
+  url: string
+}
+
+export interface IResponse<T = any> {
+  code: number
+  data: T
+  message: string
+}
+
 export {
   AxiosResponse,
   RequestInterceptors,

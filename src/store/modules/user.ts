@@ -1,26 +1,24 @@
 import { defineStore } from 'pinia'
 import { store } from '../index'
-import { UserLoginType, UserType } from '@/api/login/types'
 import { ElMessageBox } from 'element-plus'
 import { useI18n } from '@/hooks/web/useI18n'
-import { loginOutApi } from '@/api/login'
 import { useTagsViewStore } from './tagsView'
 import router from '@/router'
 
 interface UserState {
-  userInfo?: UserType
+  userInfo?: API.UserVO
   tokenKey: string
   token: string
   roleRouters?: string[] | AppCustomRouteRecordRaw[]
   rememberMe: boolean
-  loginInfo?: UserLoginType
+  loginInfo?: API.UserPasswordLoginDTO
 }
 
 export const useUserStore = defineStore('user', {
   state: (): UserState => {
     return {
       userInfo: undefined,
-      tokenKey: 'Authorization',
+      tokenKey: 'token',
       token: '',
       roleRouters: undefined,
       // 记住我
@@ -35,7 +33,7 @@ export const useUserStore = defineStore('user', {
     getToken(): string {
       return this.token
     },
-    getUserInfo(): UserType | undefined {
+    getUserInfo(): API.UserVO | undefined {
       return this.userInfo
     },
     getRoleRouters(): string[] | AppCustomRouteRecordRaw[] | undefined {
@@ -44,7 +42,7 @@ export const useUserStore = defineStore('user', {
     getRememberMe(): boolean {
       return this.rememberMe
     },
-    getLoginInfo(): UserLoginType | undefined {
+    getLoginInfo(): API.UserPasswordLoginDTO | undefined {
       return this.loginInfo
     }
   },
@@ -52,10 +50,10 @@ export const useUserStore = defineStore('user', {
     setTokenKey(tokenKey: string) {
       this.tokenKey = tokenKey
     },
-    setToken(token: string) {
-      this.token = token
+    setToken(token: string | undefined) {
+      this.token = token ?? ''
     },
-    setUserInfo(userInfo?: UserType) {
+    setUserInfo(userInfo?: API.UserVO) {
       this.userInfo = userInfo
     },
     setRoleRouters(roleRouters: string[] | AppCustomRouteRecordRaw[]) {
@@ -65,7 +63,7 @@ export const useUserStore = defineStore('user', {
           ? roleRouters.map((route) => (typeof route === 'string' ? route : route.name))
           : []
         if (this.userInfo.roles.length === 0) {
-          this.userInfo.roles.push('超级管理员')
+          this.userInfo.roles.push({ roleId: 1, cname: '超级管理员', ename: 'superAdmin' })
         }
       }
     },
@@ -77,10 +75,7 @@ export const useUserStore = defineStore('user', {
         type: 'warning'
       })
         .then(async () => {
-          const res = await loginOutApi().catch(() => {})
-          if (res) {
-            this.reset()
-          }
+          this.reset()
         })
         .catch(() => {})
     },
@@ -98,7 +93,7 @@ export const useUserStore = defineStore('user', {
     setRememberMe(rememberMe: boolean) {
       this.rememberMe = rememberMe
     },
-    setLoginInfo(loginInfo: UserLoginType | undefined) {
+    setLoginInfo(loginInfo: API.UserPasswordLoginDTO | undefined) {
       this.loginInfo = loginInfo
     }
   },

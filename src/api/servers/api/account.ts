@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加账号表 POST /account/add */
 export async function addAccount(body: API.Account, options?: { [key: string]: any }) {

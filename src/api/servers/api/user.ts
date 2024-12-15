@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加用户 POST /user/add */
 export async function addUser(body: API.UserCreateParm, options?: { [key: string]: any }) {
@@ -159,14 +159,14 @@ export async function uploadAvatar(body: {}, options?: { [key: string]: any }) {
   })
 }
 
-/** 用户查看头像 GET /user/upload-avatar/${param0} */
+/** 用户查看头像 GET /user/view-avatar/${param0} */
 export async function viewAvatar(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.viewAvatarParams,
   options?: { [key: string]: any }
 ) {
   const { filename: param0, ...queryParams } = params
-  return request<string>(`/user/upload-avatar/${param0}`, {
+  return request<string>(`/user/view-avatar/${param0}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {})

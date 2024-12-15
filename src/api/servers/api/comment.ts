@@ -1,6 +1,6 @@
 // @ts-ignore
 /* eslint-disable */
-import request from 'umi-request'
+import request from '@/axios/index'
 
 /** 添加 POST /comment/add */
 export async function addComment(body: API.Comment, options?: { [key: string]: any }) {
