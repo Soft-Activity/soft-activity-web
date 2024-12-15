@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { ElInput, ElButton } from 'element-plus'
 import { resetRouter } from '@/router'
 import { useRouter } from 'vue-router'
 import { useStorage } from '@/hooks/web/useStorage'
@@ -9,7 +8,6 @@ import { useI18n } from '@/hooks/web/useI18n'
 import { useNow } from '@/hooks/web/useNow'
 import { useDesign } from '@/hooks/web/useDesign'
 import { Icon } from '@/components/Icon'
-import { loginOutApi } from '@/api/login'
 import { useTagsViewStore } from '@/store/modules/tagsView'
 
 const tagsViewStore = useTagsViewStore()
@@ -49,14 +47,11 @@ async function unLock() {
 
 // 返回登录
 async function goLogin() {
-  const res = await loginOutApi().catch(() => {})
-  if (res) {
-    clear()
-    tagsViewStore.delAllViews()
-    resetRouter() // 重置静态路由表
-    lockStore.resetLockInfo()
-    replace('/login')
-  }
+  clear()
+  tagsViewStore.delAllViews()
+  resetRouter() // 重置静态路由表
+  lockStore.resetLockInfo()
+  replace('/login')
 }
 
 function handleShowForm(show = false) {

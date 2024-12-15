@@ -42,7 +42,7 @@ const toPage = (path: string) => {
 
 const userRoles: Ref<string[]> = computed(() => {
   const roles = userStore.getUserInfo?.roles || []
-  return roles.length ? roles : ['超级管理员']
+  return roles.length ? roles.map((role) => role?.ename || '') : ['超级管理员']
 })
 </script>
 
