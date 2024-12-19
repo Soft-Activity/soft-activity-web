@@ -647,6 +647,13 @@ declare namespace API {
     token?: string
   }
 
+  type UserChangePasswordDTO = {
+    /** 旧密码 */
+    oldPassword: string
+    /** 新密码 */
+    newPassword: string
+  }
+
   type UserCreateParm = {
     /** 学号/学工号 */
     userId?: string
