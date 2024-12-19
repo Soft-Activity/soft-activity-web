@@ -9,7 +9,6 @@ import { usePermissionStore } from '@/store/modules/permission'
 import { useRouter } from 'vue-router'
 import type { RouteLocationNormalizedLoaded, RouteRecordRaw } from 'vue-router'
 import { useValidator } from '@/hooks/web/useValidator'
-import { Icon } from '@/components/Icon'
 import { useUserStore } from '@/store/modules/user'
 import { BaseButton } from '@/components/Button'
 import { getCurrentUser, loginByPassword } from '@/api/servers/api/user'
@@ -29,7 +28,7 @@ const { currentRoute, addRoute, push } = useRouter()
 const { t } = useI18n()
 
 const rules = {
-  userId: [required()],
+  studentId: [required()],
   password: [required()]
 }
 
@@ -48,7 +47,7 @@ const schema = reactive<FormSchema[]>([
     }
   },
   {
-    field: 'userId',
+    field: 'studentId',
     label: '学号',
     // value: 'admin',
     component: 'Input',
@@ -190,8 +189,8 @@ const remember = ref(userStore.getRememberMe)
 const initLoginInfo = () => {
   const loginInfo = userStore.getLoginInfo
   if (loginInfo) {
-    const { userId, password } = loginInfo
-    setValues({ userId, password })
+    const { studentId, password } = loginInfo
+    setValues({ studentId, password })
   }
 }
 onMounted(() => {
@@ -234,7 +233,7 @@ const signIn = async () => {
           // 是否记住我
           if (unref(remember)) {
             userStore.setLoginInfo({
-              userId: formData.userId,
+              studentId: formData.studentId,
               password: formData.password
             })
           } else {

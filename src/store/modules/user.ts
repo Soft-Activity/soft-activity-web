@@ -31,6 +31,7 @@ export const useUserStore = defineStore('user', {
       return this.tokenKey
     },
     getToken(): string {
+      this.token = localStorage.getItem('token') || this.token
       return this.token
     },
     getUserInfo(): API.UserVO | undefined {
@@ -44,14 +45,20 @@ export const useUserStore = defineStore('user', {
     },
     getLoginInfo(): API.UserPasswordLoginDTO | undefined {
       return this.loginInfo
+    },
+    //判断是否已经登录
+    isLogin(): boolean {
+      return this.userInfo?.userId !== undefined
     }
   },
   actions: {
     setTokenKey(tokenKey: string) {
       this.tokenKey = tokenKey
+      localStorage.setItem('tokenKey', this.tokenKey)
     },
     setToken(token: string | undefined) {
       this.token = token ?? ''
+      localStorage.setItem('token', this.token)
     },
     setUserInfo(userInfo?: API.UserVO) {
       this.userInfo = userInfo
