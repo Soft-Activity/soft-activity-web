@@ -17,14 +17,24 @@ import {
   ElUpload,
   ElTag
 } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
+import type {
+  FormInstance,
+  FormRules,
+  UploadFile,
+  UploadProps,
+  UploadRequestOptions
+} from 'element-plus'
 import {
+  batchImportStudents,
   deleteStudent,
   downloadStudentBatchImportTemplate,
+  downloadStudentExcel,
   getClassList,
   getCollegeList,
   getStudents
 } from '@/api/servers/api/student'
+import qs from 'query-string'
+import { UploadUtils } from '@/utils/uploadUtils'
 
 // 搜索参数
 const searchParams = ref<API.StudentQuery>({})
@@ -323,57 +333,70 @@ const submitForm = () => {
   })
 }
 
-// 导入学生
-const handleImport = (file: File) => {
-  // 这里处理文件上传逻辑
-  const formData = new FormData()
-  formData.append('file', file)
-
-  // 模拟上传
-  setTimeout(() => {
-    ElMessage.success('导入成功')
-    getList()
-  }, 1000)
-
-  return false
-}
-
 // 导出学生
 const handleExport = () => {
-  // 这里处理导出逻辑
-  // const data = dataList.value
+  try {
+    window.open(
+      qs.stringifyUrl({
+        url: `${import.meta.env.VITE_API_BASE_PATH}/student/download-excel`,
+        query: searchParams.value
+      })
+    )
 
-  // 模拟下载
-  ElMessage.success('导出成功')
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败')
+  }
 }
 
 // 修改下载模板方法
 const downloadTemplate = async () => {
   try {
-    const res = await downloadStudentBatchImportTemplate({
-      responseType: 'blob' // 设置响应类型为 blob
-    })
-
-    // 创建 Blob 对象
-    const blob = new Blob([res.data], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    })
-
-    // 创建下载链接
-    const link = document.createElement('a')
-    link.href = window.URL.createObjectURL(blob)
-
-    // 触发下载
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(link.href)
+    window.open(
+      qs.stringifyUrl({
+        url: `${import.meta.env.VITE_API_BASE_PATH}/student/download-batch-import-template`
+      })
+    )
 
     ElMessage.success('模板下载成功')
   } catch (error) {
     console.error('下载模板失败:', error)
     ElMessage.error('下载模板失败')
   }
+}
+
+// 修改上传方法
+const handleUpload = async (options: UploadRequestOptions) => {
+  try {
+    // 直接传入空对象和文件
+    const res = await batchImportStudents({}, options.file)
+
+    const errorList: API.ImportRowResult[] = res.data.failed || []
+    const errorStr = errorList.map((item) => item.message).join('\n')
+
+    if (errorStr) {
+      ElMessage.error(errorStr)
+    } else {
+      ElMessage.success('全部导入成功')
+      getList()
+    }
+  } catch (error) {
+    console.error('导入失败:', error)
+    ElMessage.error('导入失败')
+  }
+}
+
+// 上传之前的验证
+const beforeUpload: UploadProps['beforeUpload'] = (file) => {
+  const isExcel =
+    file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    file.type === 'application/vnd.ms-excel'
+  if (!isExcel) {
+    ElMessage.error('只能上传 Excel 文件!')
+    return false
+  }
+  return true
 }
 </script>
 
@@ -385,17 +408,18 @@ const downloadTemplate = async () => {
       <BaseButton type="primary" @click="handleAdd">新增学生</BaseButton>
       <ElUpload
         class="ml-10px"
-        :auto-upload="false"
+        :auto-upload="true"
         :show-file-list="false"
         accept=".xlsx,.xls"
-        :before-upload="handleImport"
+        :before-upload="beforeUpload"
+        :http-request="handleUpload"
       >
         <BaseButton type="primary">导入学生</BaseButton>
       </ElUpload>
       <BaseButton class="ml-10px" type="primary" @click="downloadTemplate">
         下载导入模板
       </BaseButton>
-      <BaseButton class="ml-10px" type="primary" @click="handleExport">导出学生</BaseButton>
+      <BaseButton class="ml-10px" type="primary" @click="handleExport"> 导出学生 </BaseButton>
     </div>
 
     <Table
