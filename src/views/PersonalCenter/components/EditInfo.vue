@@ -1,22 +1,17 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref, toRefs } from 'vue'
 import { ElForm, ElFormItem, ElInput, ElSelect, ElButton, ElMessage, ElOption } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-
-interface UserInfo {
-  userId: string
-  name: string
-  college: string
-  gender: string
-  avatar: string
-}
+import { updateUser } from '@/api/servers/api/user'
+import { useUserStore } from '@/store/modules/user'
 
 const props = defineProps<{
-  userInfo: UserInfo
+  userInfo: API.UserVO
 }>()
 
+const { userInfo } = toRefs(props)
 const formRef = ref<FormInstance>()
-const form = ref<UserInfo>(props.userInfo)
+const form = userInfo
 
 const rules = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
@@ -28,17 +23,35 @@ const handleSubmit = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid) => {
     if (valid) {
-      // 这里可以调用更新接口
-      ElMessage.success('信息已更新')
+      const userInfo = useUserStore().getUserInfo || {}
+      if (userInfo.userId) {
+        // 这里可以调用更新接口
+        await updateUser(
+          {
+            id: userInfo.userId
+          },
+          {
+            name: form.value.name,
+            gender: form.value.gender,
+            college: form.value.college
+          }
+        )
+        ElMessage.success('信息已更新')
+      }
     }
   })
 }
+
+onMounted(() => {
+  console.log('form.value', form.value)
+  console.log('props.userInfo', props.userInfo)
+})
 </script>
 
 <template>
   <ElForm ref="formRef" :model="form" :rules="rules" label-width="120px">
     <ElFormItem label="学号/学工号">
-      <ElInput v-model="form.userId" disabled />
+      <ElInput v-model="form.studentId" disabled />
     </ElFormItem>
     <ElFormItem label="姓名" prop="name">
       <ElInput v-model="form.name" />

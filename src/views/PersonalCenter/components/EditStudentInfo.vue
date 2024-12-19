@@ -1,34 +1,15 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
-import {
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElSelect,
-  ElOption,
-  ElButton,
-  ElMessage,
-  ElTag
-} from 'element-plus'
+import { ref, toRefs } from 'vue'
+import { ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElMessage, ElTag } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 
-interface StudentInfo {
-  studentId: string
-  name: string
-  college: string
-  classes: string
-  grade: number
-  type: string
-  gender: string
-  isVerified: boolean
-}
-
 const props = defineProps<{
-  studentInfo: StudentInfo
+  studentInfo: API.StudentVO
 }>()
 
 const formRef = ref<FormInstance>()
-const form = ref<StudentInfo>(props.studentInfo)
+const { studentInfo } = toRefs(props)
+const form = studentInfo
 
 // 学生类型选项
 const studentTypes = [

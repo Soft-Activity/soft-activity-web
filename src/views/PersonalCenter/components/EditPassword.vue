@@ -4,6 +4,7 @@ import { useForm } from '@/hooks/web/useForm'
 import { reactive, ref } from 'vue'
 import { useValidator } from '@/hooks/web/useValidator'
 import { ElMessage, ElMessageBox, ElDivider } from 'element-plus'
+import { changePassword } from '@/api/servers/api/user'
 
 const { required } = useValidator()
 
@@ -90,8 +91,16 @@ const save = async () => {
       .then(async () => {
         try {
           saveLoading.value = true
+          const formData = await getFormData()
           // 这里可以调用修改密码的接口
+          await changePassword({
+            oldPassword: formData.password,
+            newPassword: formData.newPassword
+          })
           ElMessage.success('修改成功')
+          formData.password = ''
+          formData.newPassword = ''
+          formData.newPassword2 = ''
         } catch (error) {
           console.log(error)
         } finally {

@@ -42,7 +42,7 @@ const toPage = (path: string) => {
 
 const userRoles: Ref<string[]> = computed(() => {
   const roles = userStore.getUserInfo?.roles || []
-  return roles.length ? roles.map((role) => role?.ename || '') : ['超级管理员']
+  return roles.length ? roles.map((role) => role?.cname || '') : ['游客']
 })
 </script>
 
@@ -55,7 +55,7 @@ const userRoles: Ref<string[]> = computed(() => {
         class="w-[calc(var(--logo-height)-25px)] rounded-[50%]"
       />
       <span class="<lg:hidden text-14px pl-[5px] text-[var(--top-header-text-color)]">{{
-        userStore.getUserInfo?.username
+        userStore.getUserInfo?.name
       }}</span>
     </div>
     <template #dropdown>

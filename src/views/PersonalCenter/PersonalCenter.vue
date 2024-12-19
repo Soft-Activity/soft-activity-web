@@ -8,34 +8,21 @@ import { Dialog } from '@/components/Dialog'
 import EditStudentInfo from './components/EditStudentInfo.vue'
 import EditPassword from './components/EditPassword.vue'
 import EditInfo from './components/EditInfo.vue'
+import { getCurrentUser } from '@/api/servers/api/user'
+import { getStudent } from '@/api/servers/api/student'
 
-const userInfo = ref()
-const studentInfo = ref()
+const userInfo = ref<API.UserVO>({})
+const studentInfo = ref<API.StudentVO>({})
 const fetchDetailUserApi = async () => {
   // 这里可以调用接口获取用户信息
-  const data = {
-    userId: '2023001', // 学号/学工号
-    name: ':D', // 姓名
-    college: '计算机学院', // 学院/部门
-    avatar: '', // 头像URL
-    gender: '男', // 性别
-    roles: [
-      {
-        name: '学生'
-      }
-    ] // 角色列表
-  }
-  userInfo.value = data
-  studentInfo.value = {
-    userId: '2023001', // 学号/学工号
-    name: '张三', // 姓名
-    college: '计算机学院', // 学院/部门
-    gender: '男', // 性别
-    studentId: '2023001', // 学号
-    classes: '计算机2301班', // 班级
-    grade: 2022, // 年级
-    type: '本科生', // 学生类型
-    isVerified: true // 认证状态
+  const data = await getCurrentUser()
+  console.log(data)
+  userInfo.value = data.data
+  if (userInfo.value?.studentId) {
+    const studentData = await getStudent({ id: userInfo.value.studentId })
+    studentInfo.value = studentData.data
+  } else {
+    studentInfo.value = {}
   }
 }
 fetchDetailUserApi()
@@ -81,7 +68,7 @@ const saveAvatar = async () => {
       <ElDivider />
       <div class="flex justify-between items-center">
         <div>学号/学工号：</div>
-        <div>{{ userInfo?.userId }}</div>
+        <div>{{ userInfo?.studentId }}</div>
       </div>
       <ElDivider />
       <div class="flex justify-between items-center">
@@ -103,8 +90,8 @@ const saveAvatar = async () => {
         <div>角色：</div>
         <div>
           <template v-if="userInfo?.roles?.length">
-            <ElTag v-for="role in userInfo?.roles" :key="role.name" class="ml-2 mb-w"
-              >{{ role.name }}
+            <ElTag v-for="role in userInfo?.roles" :key="role.cname" class="ml-2 mb-w"
+              >{{ role.cname }}
             </ElTag>
           </template>
           <template v-else>-</template>
@@ -115,10 +102,10 @@ const saveAvatar = async () => {
     <ContentWrap title="基本资料" class="flex-[3] ml-20px">
       <ElTabs v-model="activeName">
         <ElTabPane label="基本信息" name="first">
-          <EditInfo :user-info="userInfo" />
+          <EditInfo :userInfo="userInfo" />
         </ElTabPane>
         <ElTabPane label="学生信息" name="second">
-          <EditStudentInfo :student-info="studentInfo" />
+          <EditStudentInfo :studentInfo="studentInfo" />
         </ElTabPane>
         <ElTabPane label="修改密码" name="third">
           <EditPassword />
