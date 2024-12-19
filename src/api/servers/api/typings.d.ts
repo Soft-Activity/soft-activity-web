@@ -319,6 +319,10 @@ declare namespace API {
     id: string
   }
 
+  type downloadStudentExcelParams = {
+    param: StudentQuery
+  }
+
   type getAccountParams = {
     id: string
   }
@@ -364,7 +368,7 @@ declare namespace API {
   }
 
   type getClassListParams = {
-    college: string
+    param: StudentQuery
   }
 
   type getCommentParams = {
@@ -421,6 +425,16 @@ declare namespace API {
     current?: number
     pageSize?: number
     param: UserQuery
+  }
+
+  type ImportRowResult = {
+    success?: boolean
+    message?: string
+  }
+
+  type ImportTotalResult = {
+    success?: ImportRowResult[]
+    failed?: ImportRowResult[]
   }
 
   type isCommentParams = {
@@ -691,6 +705,15 @@ declare namespace API {
     avatar?: string
     /** 性别 */
     gender?: string
+    /** 角色id */
+    roleId?: number
+  }
+
+  type UserResetPasswordDTO = {
+    /** 用户id */
+    userId: string
+    /** 新密码 */
+    newPassword: string
   }
 
   type UserVO = {
@@ -706,7 +729,12 @@ declare namespace API {
     avatar?: string
     /** 性别 */
     gender?: string
+    /** 角色列表 */
     roles?: Role[]
+    /** 是否绑定微信 */
+    bindWX?: boolean
+    /** 是否设置密码 */
+    setPassword?: boolean
   }
 
   type UserWXLoginDTO = {

@@ -143,6 +143,21 @@ export async function loginByWx(body: API.UserWXLoginDTO, options?: { [key: stri
   })
 }
 
+/** 重新设置学生密码 POST /user/reset-password */
+export async function resetPassword(
+  body: API.UserResetPasswordDTO,
+  options?: { [key: string]: any }
+) {
+  return request<boolean>('/user/reset-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: body,
+    ...(options || {})
+  })
+}
+
 /** 微信自行解绑 POST /user/unbind-wx-self */
 export async function unbindMyWx(options?: { [key: string]: any }) {
   return request<boolean>('/user/unbind-wx-self', {
