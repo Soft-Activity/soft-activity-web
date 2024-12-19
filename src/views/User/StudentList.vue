@@ -2,13 +2,12 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { Table, TableColumn } from '@/components/Table'
 import { Search } from '@/components/Search'
-import { reactive, ref } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { BaseButton } from '@/components/Button'
 import { useTable } from '@/hooks/web/useTable'
 import { FormSchema } from '@/components/Form'
 import {
   ElMessage,
-  ElMessageBox,
   ElDialog,
   ElForm,
   ElFormItem,
@@ -19,50 +18,40 @@ import {
   ElTag
 } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
+import {
+  deleteStudent,
+  downloadStudentBatchImportTemplate,
+  getClassList,
+  getCollegeList,
+  getStudents
+} from '@/api/servers/api/student'
 
-interface StudentForm {
-  studentId: string
-  name: string
-  college: string
-  classes: string
-  grade: number
-  type: string
-  gender: string
-  isVerified: boolean
+// 搜索参数
+const searchParams = ref<API.StudentQuery>({})
+const setSearchParams = (params: API.StudentQuery) => {
+  searchParams.value = params
+  getList()
+  getClassOptions(searchParams.value)
 }
-
-// 模拟数据
-const mockStudents = [
-  {
-    studentId: '2021001',
-    name: '张三',
-    college: '计算机学院',
-    classes: '计算机2101',
-    grade: 2021,
-    type: '本科生',
-    gender: '男',
-    isVerified: true
-  },
-  {
-    studentId: '2021002',
-    name: '李四',
-    college: '信息工程学院',
-    classes: '信息2102',
-    grade: 2021,
-    type: '研究生',
-    gender: '女',
-    isVerified: false
-  }
-]
-
+const deleteStudentId = ref<string>('')
 const { tableRegister, tableState, tableMethods } = useTable({
   fetchDataApi: async () => {
+    const res = await getStudents({
+      current: currentPage.value,
+      pageSize: pageSize.value,
+      param: searchParams.value
+    })
     return {
-      list: mockStudents,
-      total: mockStudents.length
+      list: res.data.list || [],
+      total: res.data.total || 0
     }
   },
   fetchDelApi: async () => {
+    if (!deleteStudentId.value) {
+      ElMessage.error('请选择要删除的学生')
+      return false
+    }
+    await deleteStudent({ id: deleteStudentId.value })
     return true
   }
 })
@@ -127,7 +116,7 @@ const columns: TableColumn[] = [
             <BaseButton type="primary" onClick={() => handleEdit(data.row)}>
               编辑
             </BaseButton>
-            <BaseButton type="danger" onClick={() => handleDelete(data.row)}>
+            <BaseButton type="danger" onClick={() => handleDelete(data.row, data.cellIndex)}>
               删除
             </BaseButton>
           </>
@@ -136,6 +125,51 @@ const columns: TableColumn[] = [
     }
   }
 ]
+
+const collegeOptions = ref<{ label: string; value: string }[]>([])
+const getCollegeOptions = async () => {
+  try {
+    const res = await getCollegeList()
+    collegeOptions.value = res.data?.map((item) => ({ label: item, value: item })) || []
+  } catch (error) {
+    ElMessage.error('获取学院列表失败')
+  }
+}
+getCollegeOptions()
+const classOptions = ref<{ label: string; value: string }[]>([])
+const getClassOptions = async (params: API.StudentQuery, source?: 'search' | 'form') => {
+  console.log('params', params)
+  let query: API.StudentQuery = {}
+  if (source === 'search') {
+    query = {
+      ...(searchParams.value.college ? { college: searchParams.value.college } : {}),
+      ...(searchParams.value.grade ? { grade: searchParams.value.grade } : {}),
+      ...(searchParams.value.type ? { type: searchParams.value.type } : {})
+    }
+  } else if (source === 'form') {
+    query = {
+      ...(form.value.college ? { college: form.value.college } : {}),
+      ...(form.value.grade ? { grade: form.value.grade } : {}),
+      ...(form.value.type ? { type: form.value.type } : {})
+    }
+  }
+  // 合并参数
+  query = { ...query, ...params }
+  console.log('query', query)
+
+  try {
+    const res = await getClassList({ param: query })
+    classOptions.value = res.data?.map((item) => ({ label: item, value: item })) || []
+    console.log('classOptions', classOptions.value)
+  } catch (error) {
+    console.log('获取班级列表失败:', error)
+    ElMessage.error('获取班级列表失败')
+  }
+}
+getClassOptions({})
+
+const typeOptions = ['本科生', '研究生', '博士生'].map((item) => ({ label: item, value: item }))
+const genderOptions = ['男', '女', '未知'].map((item) => ({ label: item, value: item }))
 
 // 搜索表单配置
 const searchSchema = reactive<FormSchema[]>([
@@ -152,22 +186,70 @@ const searchSchema = reactive<FormSchema[]>([
   {
     field: 'college',
     label: '学院',
-    component: 'Input'
+    component: 'Select',
+    componentProps: {
+      options: collegeOptions,
+      onChange: (value: string) => {
+        getClassOptions({ college: value }, 'search')
+      }
+    }
+  },
+  {
+    field: 'classes',
+    label: '班级',
+    component: 'Select',
+    componentProps: {
+      options: classOptions
+    }
+  },
+  {
+    field: 'grade',
+    label: '年级',
+    component: 'Input',
+    componentProps: {
+      onChange: (value: number) => {
+        getClassOptions({ grade: value }, 'search')
+      }
+    }
+  },
+  {
+    field: 'type',
+    label: '类型',
+    component: 'Select',
+    componentProps: {
+      options: typeOptions,
+      onChange: (value: string) => {
+        getClassOptions({ type: value }, 'search')
+      }
+    }
+  },
+  {
+    field: 'gender',
+    label: '性别',
+    component: 'Select',
+    componentProps: {
+      options: genderOptions
+    }
+  },
+  {
+    field: 'isVerified',
+    label: '认证状态',
+    component: 'Select',
+    componentProps: {
+      options: [
+        { label: '已认证', value: true },
+        { label: '未认证', value: false }
+      ],
+      type: 'button'
+    }
   }
 ])
-
-// 搜索参数
-const searchParams = ref({})
-const setSearchParams = (params: any) => {
-  searchParams.value = params
-  getList()
-}
 
 // 弹窗表单
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const formRef = ref<FormInstance>()
-const form = ref<StudentForm>({
+const form = ref<API.Student>({
   studentId: '',
   name: '',
   college: '',
@@ -198,18 +280,26 @@ const handleAdd = () => {
     gender: '',
     isVerified: false
   }
+
+  getClassOptions({}, 'form')
 }
 
 // 编辑
-const handleEdit = (row: StudentForm) => {
+const handleEdit = (row: API.Student) => {
   dialogTitle.value = '编辑学生'
   dialogVisible.value = true
   form.value = { ...row }
+  getClassOptions({}, 'form')
 }
 
 // 删除
-const handleDelete = async (row: StudentForm) => {
-  await tableMethods.delList(1)
+const handleDelete = async (row: API.Student, index: number) => {
+  if (!row.studentId) {
+    ElMessage.error('学生学号不能为空')
+    return
+  }
+  deleteStudentId.value = row.studentId
+  await tableMethods.delList(index)
 }
 
 // 提交表单
@@ -251,21 +341,39 @@ const handleImport = (file: File) => {
 // 导出学生
 const handleExport = () => {
   // 这里处理导出逻辑
-  const data = dataList.value
-  const header = ['学号', '姓名', '学院', '班级', '年级', '类型', '性别', '认证状态']
-  const content = data.map((item) => [
-    item.studentId,
-    item.name,
-    item.college,
-    item.classes,
-    item.grade,
-    item.type,
-    item.gender,
-    item.isVerified ? '已认证' : '未认证'
-  ])
+  // const data = dataList.value
 
   // 模拟下载
   ElMessage.success('导出成功')
+}
+
+// 修改下载模板方法
+const downloadTemplate = async () => {
+  try {
+    const res = await downloadStudentBatchImportTemplate({
+      responseType: 'blob' // 设置响应类型为 blob
+    })
+
+    // 创建 Blob 对象
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    })
+
+    // 创建下载链接
+    const link = document.createElement('a')
+    link.href = window.URL.createObjectURL(blob)
+
+    // 触发下载
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(link.href)
+
+    ElMessage.success('模板下载成功')
+  } catch (error) {
+    console.error('下载模板失败:', error)
+    ElMessage.error('下载模板失败')
+  }
 }
 </script>
 
@@ -284,6 +392,9 @@ const handleExport = () => {
       >
         <BaseButton type="primary">导入学生</BaseButton>
       </ElUpload>
+      <BaseButton class="ml-10px" type="primary" @click="downloadTemplate">
+        下载导入模板
+      </BaseButton>
       <BaseButton class="ml-10px" type="primary" @click="handleExport">导出学生</BaseButton>
     </div>
 
@@ -302,35 +413,78 @@ const handleExport = () => {
 
     <ElDialog v-model="dialogVisible" :title="dialogTitle" width="500px" destroy-on-close>
       <ElForm ref="formRef" :model="form" :rules="rules" label-width="100px">
-        <ElFormItem label="学号" prop="studentId">
+        <ElFormItem label="学号" prop="studentId" required>
           <ElInput v-model="form.studentId" placeholder="请输入学号" />
         </ElFormItem>
-        <ElFormItem label="姓名" prop="name">
+        <ElFormItem label="姓名" prop="name" required>
           <ElInput v-model="form.name" placeholder="请输入姓名" />
         </ElFormItem>
-        <ElFormItem label="学院" prop="college">
-          <ElInput v-model="form.college" placeholder="请输入学院" />
-        </ElFormItem>
-        <ElFormItem label="班级" prop="classes">
-          <ElInput v-model="form.classes" placeholder="请输入班级" />
-        </ElFormItem>
-        <ElFormItem label="年级" prop="grade">
-          <ElInput v-model="form.grade" placeholder="请输入年级" type="number" />
-        </ElFormItem>
-        <ElFormItem label="类型" prop="type">
-          <ElSelect v-model="form.type" placeholder="请选择类型">
-            <ElOption label="本科生" value="本科生" />
-            <ElOption label="研究生" value="研究生" />
-            <ElOption label="博士生" value="博士生" />
+        <ElFormItem label="学院" prop="college" required>
+          <ElSelect
+            v-model="form.college"
+            placeholder="请选择或输入学院"
+            filterable
+            allow-create
+            default-first-option
+            @change="() => getClassOptions({}, 'form')"
+          >
+            <ElOption
+              v-for="item in collegeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </ElSelect>
         </ElFormItem>
-        <ElFormItem label="性别" prop="gender">
+        <ElFormItem label="班级" prop="classes" required>
+          <ElSelect
+            v-model="form.classes"
+            placeholder="请选择班级"
+            filterable
+            allow-create
+            default-first-option
+          >
+            <ElOption
+              v-for="item in classOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </ElSelect>
+        </ElFormItem>
+        <ElFormItem label="年级" prop="grade" required>
+          <ElInput
+            v-model="form.grade"
+            placeholder="请输入年级"
+            type="number"
+            @change="() => getClassOptions({}, 'form')"
+          />
+        </ElFormItem>
+        <ElFormItem label="类型" prop="type" required>
+          <ElSelect
+            v-model="form.type"
+            placeholder="请选择类型"
+            @change="() => getClassOptions({}, 'form')"
+          >
+            <ElOption
+              v-for="item in typeOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </ElSelect>
+        </ElFormItem>
+        <ElFormItem label="性别" prop="gender" required>
           <ElSelect v-model="form.gender" placeholder="请选择性别">
-            <ElOption label="男" value="男" />
-            <ElOption label="女" value="女" />
+            <ElOption
+              v-for="item in genderOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </ElSelect>
         </ElFormItem>
-        <ElFormItem label="认证状态" prop="isVerified">
+        <ElFormItem label="认证状态" prop="isVerified" disabled>
           <ElSelect v-model="form.isVerified" placeholder="请选择认证状态" disabled>
             <ElOption label="未认证" :value="false" />
             <ElOption label="已认证" :value="true" />

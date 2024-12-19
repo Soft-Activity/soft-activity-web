@@ -2,18 +2,13 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { Table, TableColumn } from '@/components/Table'
 import { Search } from '@/components/Search'
-import { reactive, ref, unref } from 'vue'
+import { reactive, ref } from 'vue'
 import { BaseButton } from '@/components/Button'
 import { useTable } from '@/hooks/web/useTable'
 import { FormSchema } from '@/components/Form'
 import { ElMessage, ElMessageBox, ElDialog, ElForm, ElFormItem, ElInput } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
-
-interface RoleForm {
-  roleId?: number
-  cname: string
-  ename: string
-}
+import { addRole, deleteRole, getRoles, updateRole } from '@/api/servers/api/role'
 
 // 模拟数据
 const mockRoles = [
@@ -51,54 +46,15 @@ const mockRoles = [
 
 const { tableRegister, tableMethods, tableState } = useTable({
   fetchDataApi: async () => {
-    const { currentPage, pageSize } = tableState
-
-    console.log('currentPage', unref(currentPage))
-    console.log('pageSize', unref(pageSize))
-    const res = {
-      data: {
-        list: [
-          {
-            roleId: 1,
-            cname: '超级管理员',
-            ename: 'SUPER_ADMIN'
-          },
-          {
-            roleId: 2,
-            cname: '老师',
-            ename: 'TEACHER'
-          },
-          {
-            roleId: 3,
-            cname: '学生',
-            ename: 'STUDENT'
-          },
-          {
-            roleId: 4,
-            cname: '普通管理员',
-            ename: 'ADMIN'
-          },
-          {
-            roleId: 5,
-            cname: '游客',
-            ename: 'GUEST'
-          },
-          {
-            roleId: 6,
-            cname: '普通用户',
-            ename: 'USER'
-          }
-        ],
-        total: 6
-      }
-    }
+    const res = await getRoles({
+      current: currentPage.value,
+      pageSize: pageSize.value,
+      param: searchParams.value
+    })
     return {
-      list: res.data.list,
-      total: res.data.total
+      list: res.data?.list || [],
+      total: res.data?.total || 0
     }
-  },
-  fetchDelApi: async () => {
-    return true
   }
 })
 const { loading, dataList, total, currentPage, pageSize } = tableState
@@ -126,7 +82,7 @@ const columns: TableColumn[] = [
     showOverflowTooltip: false,
     fixed: 'right',
     slots: {
-      default: (data: { row: RoleForm }) => {
+      default: (data: { row: API.RoleVO }) => {
         return (
           <>
             <BaseButton type="primary" onClick={() => handleEdit(data.row)}>
@@ -162,7 +118,7 @@ const searchSchema = reactive<FormSchema[]>([
   }
 ])
 
-const searchParams = ref({})
+const searchParams = ref<API.RoleQuery>({})
 const setSearchParams = (params: any) => {
   searchParams.value = params
   tableMethods.getList()
@@ -172,7 +128,7 @@ const setSearchParams = (params: any) => {
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const formRef = ref<FormInstance>()
-const form = ref<RoleForm>({
+const form = ref<API.Role>({
   cname: '',
   ename: ''
 })
@@ -194,7 +150,7 @@ const handleAdd = () => {
 }
 
 // 编辑角色
-const handleEdit = (row: RoleForm) => {
+const handleEdit = (row: API.RoleVO) => {
   dialogTitle.value = '编辑角色'
   dialogVisible.value = true
   form.value = { ...row }
@@ -209,11 +165,10 @@ const handleDelete = (roleId: number) => {
   }).then(async () => {
     try {
       // 模拟删除
-      const index = mockRoles.findIndex((item) => item.roleId === roleId)
-      if (index > -1) {
-        mockRoles.splice(index, 1)
-        ElMessage.success('删除成功')
+      const res = await deleteRole({ id: roleId })
+      if (res.data) {
         tableMethods.getList()
+        ElMessage.success('删除成功')
       }
     } catch (error) {
       ElMessage.error('删除失败')
@@ -230,20 +185,10 @@ const submitForm = async () => {
         // 模拟提交
         if (form.value.roleId) {
           // 编辑
-          const index = mockRoles.findIndex((item) => item.roleId === form.value.roleId)
-          if (index > -1 && form.value.roleId) {
-            mockRoles[index] = { ...form.value } as {
-              roleId: number
-              cname: string
-              ename: string
-            }
-          }
+          await updateRole({ id: form.value.roleId }, form.value)
         } else {
           // 新增
-          mockRoles.push({
-            ...form.value,
-            roleId: mockRoles.length + 1
-          })
+          await addRole(form.value)
         }
         ElMessage.success(`${dialogTitle.value}成功`)
         dialogVisible.value = false
