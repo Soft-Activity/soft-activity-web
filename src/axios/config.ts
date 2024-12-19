@@ -6,6 +6,7 @@ import { useUserStoreWithOut } from '@/store/modules/user'
 import { objToFormData } from '@/utils'
 
 const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
+  console.log('config', config)
   if (
     config.method === 'post' &&
     config.headers['Content-Type'] === 'application/x-www-form-urlencoded'
@@ -35,19 +36,22 @@ const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
 }
 
 const defaultResponseInterceptors = (response: AxiosResponse) => {
+  console.log('response', response)
   if (response?.config?.responseType === 'blob') {
-    // 如果是文件流，直接过
     return response
-  } else if (response.data.status === 200) {
-    console.log('response', response)
+  }
+
+  if (response.status === 401 || response.data?.status === 401) {
+    const userStore = useUserStoreWithOut()
+    userStore.logout()
+    return Promise.reject(new Error('登录已过期，请重新登录'))
+  }
+
+  if (response.data.status === 200) {
     return response.data
   } else {
-    console.log('response', response)
-    ElMessage.error(response?.data?.message)
-    if (response?.data?.status === 401) {
-      const userStore = useUserStoreWithOut()
-      userStore.logout()
-    }
+    ElMessage.error(response?.data?.message || '请求失败')
+    return Promise.reject(response.data)
   }
 }
 
