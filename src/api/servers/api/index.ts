@@ -12,6 +12,7 @@ import * as activityAiReview from './activityAiReview'
 import * as activity from './activity'
 import * as account from './account'
 import * as commonController from './commonController'
+import * as ai from './ai'
 export default {
   user,
   student,
@@ -22,5 +23,6 @@ export default {
   activityAiReview,
   activity,
   account,
-  commonController
+  commonController,
+  ai
 }

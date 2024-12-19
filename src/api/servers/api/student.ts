@@ -15,13 +15,33 @@ export async function addStudent(body: API.Student, options?: { [key: string]: a
 }
 
 /** 批量导入学生 POST /student/batch-import */
-export async function batchImportStudents(body: {}, options?: { [key: string]: any }) {
+export async function batchImportStudents(body: {}, file?: File, options?: { [key: string]: any }) {
+  const formData = new FormData()
+
+  if (file) {
+    formData.append('file', file)
+  }
+
+  Object.keys(body).forEach((ele) => {
+    const item = (body as any)[ele]
+
+    if (item !== undefined && item !== null) {
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''))
+        } else {
+          formData.append(ele, JSON.stringify(item))
+        }
+      } else {
+        formData.append(ele, item)
+      }
+    }
+  })
+
   return request<API.ImportTotalResult>('/student/batch-import', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    data: body,
+    data: formData,
+    requestType: 'form',
     ...(options || {})
   })
 }

@@ -1,11 +1,16 @@
 import service from './service'
-import { CONTENT_TYPE } from '@/constants'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { AxiosConfig, IResponse } from './types'
 
 const request = <T = any>(url: string, option: Omit<AxiosConfig, 'url'>) => {
   const { method, params, data, headers, responseType } = option
   const userStore = useUserStoreWithOut()
+
+  // 只在没有设置 Content-Type 时才设置默认值
+  const defaultHeaders = {
+    [userStore.getTokenKey ?? 'Authorization']: userStore.getToken ?? ''
+  }
+
   return service.request({
     url,
     method,
@@ -13,9 +18,8 @@ const request = <T = any>(url: string, option: Omit<AxiosConfig, 'url'>) => {
     data,
     responseType,
     headers: {
-      'Content-Type': CONTENT_TYPE,
-      [userStore.getTokenKey ?? 'Authorization']: userStore.getToken ?? '',
-      ...headers
+      ...defaultHeaders,
+      ...headers // 让传入的 headers 可以覆盖默认值
     }
   }) as Promise<IResponse<T>>
 }

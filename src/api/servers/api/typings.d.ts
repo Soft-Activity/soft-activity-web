@@ -231,6 +231,10 @@ declare namespace API {
     commentCount?: number
   }
 
+  type aiParams = {
+    userInput: string
+  }
+
   type cancelRegisterParams = {
     activityId: number
   }
@@ -562,57 +566,57 @@ declare namespace API {
 
   type Student = {
     /** 学生学号 */
-    studentId?: string
+    studentId: string
     /** 姓名 */
-    name?: string
+    name: string
     /** 学院 */
-    college?: string
+    college: string
     /** 班级 */
-    classes?: string
+    classes: string
     /** 年级 */
-    grade?: number
+    grade: number
     /** 类型:本科生/研究生/博士生 */
-    type?: string
+    type: string
     /** 性别 男/女 */
-    gender?: string
+    gender: string
     /** 是否已认证0为认证，1已认证 */
     isVerified?: boolean
   }
 
   type StudentQuery = {
     /** 学生学号 */
-    studentId?: string
+    studentId: string
     /** 姓名 */
-    name?: string
+    name: string
     /** 学院 */
-    college?: string
+    college: string
     /** 班级 */
-    classes?: string
+    classes: string
     /** 年级 */
-    grade?: number
+    grade: number
     /** 类型:本科生/研究生/博士生 */
-    type?: string
+    type: string
     /** 性别 男/女 */
-    gender?: string
+    gender: string
     /** 是否已认证0为认证，1已认证 */
     isVerified?: boolean
   }
 
   type StudentVO = {
     /** 学生学号 */
-    studentId?: string
+    studentId: string
     /** 姓名 */
-    name?: string
+    name: string
     /** 学院 */
-    college?: string
+    college: string
     /** 班级 */
-    classes?: string
+    classes: string
     /** 年级 */
-    grade?: number
+    grade: number
     /** 类型:本科生/研究生/博士生 */
-    type?: string
+    type: string
     /** 性别 男/女 */
-    gender?: string
+    gender: string
     /** 是否已认证0为认证，1已认证 */
     isVerified?: boolean
   }
