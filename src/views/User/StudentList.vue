@@ -25,13 +25,15 @@ import type {
   UploadRequestOptions
 } from 'element-plus'
 import {
+  addStudent,
   batchImportStudents,
   deleteStudent,
   downloadStudentBatchImportTemplate,
   downloadStudentExcel,
   getClassList,
   getCollegeList,
-  getStudents
+  getStudents,
+  updateStudent
 } from '@/api/servers/api/student'
 import qs from 'query-string'
 import { UploadUtils } from '@/utils/uploadUtils'
@@ -273,7 +275,11 @@ const form = ref<API.Student>({
 const rules = reactive<FormRules>({
   studentId: [{ required: true, message: '请输入学号', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  college: [{ required: true, message: '请输入学院', trigger: 'blur' }]
+  college: [{ required: true, message: '请输入学院', trigger: 'blur' }],
+  classes: [{ required: true, message: '请输入班级', trigger: 'blur' }],
+  grade: [{ required: true, message: '请输入年级', trigger: 'blur' }],
+  type: [{ required: true, message: '请输入类型', trigger: 'blur' }],
+  gender: [{ required: true, message: '请输入性别', trigger: 'blur' }]
 })
 
 // 新增
@@ -317,12 +323,23 @@ const submitForm = () => {
   formRef.value?.validate(async (valid) => {
     if (!valid) return
     try {
-      // 模拟提交
-      if (form.value.studentId) {
+      if (!form.value.studentId) {
+        ElMessage.error('学号不能为空')
+        return
+      }
+
+      if (dialogTitle.value === '编辑学生') {
         // 编辑
+        await updateStudent(
+          {
+            id: form.value.studentId
+          },
+          form.value
+        )
         ElMessage.success('编辑成功')
       } else {
         // 新增
+        await addStudent(form.value)
         ElMessage.success('新增成功')
       }
       dialogVisible.value = false
@@ -508,7 +525,7 @@ const beforeUpload: UploadProps['beforeUpload'] = (file) => {
             />
           </ElSelect>
         </ElFormItem>
-        <ElFormItem label="认证状态" prop="isVerified" disabled>
+        <ElFormItem v-if="dialogTitle === '编辑学生'" label="认证状态" prop="isVerified" disabled>
           <ElSelect v-model="form.isVerified" placeholder="请选择认证状态" disabled>
             <ElOption label="未认证" :value="false" />
             <ElOption label="已认证" :value="true" />
