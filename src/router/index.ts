@@ -18,20 +18,21 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
   },
   {
     path: '/redirect',
-    component: Layout,
     name: 'Redirect',
+    component: Layout,
+    meta: {
+      hidden: true
+    },
     children: [
       {
         path: '/redirect/:path(.*)',
-        name: 'Redirect',
+        name: 'RedirectPath',
         component: () => import('@/views/Redirect/Redirect.vue'),
-        meta: {}
+        meta: {
+          hidden: true
+        }
       }
-    ],
-    meta: {
-      hidden: true,
-      noTagsView: true
-    }
+    ]
   },
   {
     path: '/login',
