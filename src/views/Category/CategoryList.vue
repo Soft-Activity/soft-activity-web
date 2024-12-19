@@ -1,6 +1,6 @@
 <script setup lang="tsx">
 import { ContentWrap } from '@/components/ContentWrap'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import {
   ElCard,
   ElTag,
@@ -14,6 +14,12 @@ import {
 import { BaseButton } from '@/components/Button'
 import { useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
+import {
+  getActivityCategorys,
+  addActivityCategory,
+  updateActivityCategory,
+  deleteActivityCategory
+} from '@/api/servers/api/activityCategory'
 
 interface Category {
   id: number
@@ -24,27 +30,38 @@ interface Category {
 
 const { push } = useRouter()
 
-// 模拟数据
-const categories = ref<Category[]>([
-  {
-    id: 1,
-    name: '学术讲座',
-    description: '包括各类学术报告、研讨会等',
-    activityCount: 12
-  },
-  {
-    id: 2,
-    name: '文体活动',
-    description: '运动会、文艺表演等',
-    activityCount: 8
-  },
-  {
-    id: 3,
-    name: '志愿服务',
-    description: '社会实践、公益活动等',
-    activityCount: 5
+// 替换模拟数据为真实数据
+const categories = ref<Category[]>([])
+const loading = ref(false)
+
+// 添加获取数据的方法
+const fetchCategories = async () => {
+  try {
+    loading.value = true
+    const res = await getActivityCategorys({
+      current: 1,
+      pageSize: 20,
+      param: {}
+    })
+    // 使用可选链和空值合并操作符，并提供默认值
+    categories.value = (res.data?.list ?? []).map((item) => ({
+      id: item.categoryId ?? 0, // 默认值为0
+      name: item.name ?? '', // 默认值为空字符串
+      description: item.description ?? '', // 默认值为空字符串
+      activityCount: item.activityCount || 0
+    }))
+  } catch (error) {
+    ElMessage.error('获取分类列表失败')
+    console.error(error)
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 在组件挂载时获取数据
+onMounted(() => {
+  fetchCategories()
+})
 
 // 表单相关
 const dialogVisible = ref(false)
@@ -65,7 +82,7 @@ const rules: FormRules = {
   description: [{ required: true, message: '请输入分类描述', trigger: 'blur' }]
 }
 
-const handleAdd = () => {
+const handleAdd = async () => {
   dialogTitle.value = '新增分类'
   dialogVisible.value = true
   form.value = {
@@ -88,19 +105,64 @@ const handleEdit = (category: Category) => {
 const handleDelete = (category: Category) => {
   ElMessageBox.confirm('确认删除该分类吗？', '提示', {
     type: 'warning'
-  }).then(() => {
-    // TODO: 调用删除 API
-    ElMessage.success('删除成功')
   })
+    .then(async () => {
+      try {
+        const res = await deleteActivityCategory({
+          id: category.id
+        })
+        if (res) {
+          ElMessage.success('删除成功')
+          fetchCategories() // 刷新列表数据
+        }
+      } catch (error) {
+        ElMessage.error('删除分类失败')
+        console.error(error)
+      }
+    })
+    .catch(() => {
+      // 用户点击取消按钮时，不做任何操作
+    })
 }
 
 const submitForm = async () => {
   if (!formRef.value) return
-  await formRef.value.validate((valid) => {
+  await formRef.value.validate(async (valid) => {
     if (valid) {
-      // TODO: 调用保存 API
-      ElMessage.success(form.value.id ? '编辑成功' : '新增成功')
-      dialogVisible.value = false
+      try {
+        if (form.value.id) {
+          // 编辑分类
+          const res = await updateActivityCategory(
+            {
+              id: form.value.id
+            },
+            {
+              categoryId: form.value.id,
+              name: form.value.name,
+              description: form.value.description
+            }
+          )
+          if (res) {
+            ElMessage.success('编辑分类成功')
+            dialogVisible.value = false
+            fetchCategories() // 刷新列表
+          }
+        } else {
+          // 新增分类（保持原有逻辑）
+          const res = await addActivityCategory({
+            name: form.value.name,
+            description: form.value.description
+          })
+          if (res) {
+            ElMessage.success('添加分类成功')
+            dialogVisible.value = false
+            fetchCategories() // 刷新列表
+          }
+        }
+      } catch (error) {
+        ElMessage.error(form.value.id ? '编辑分类失败' : '添加分类失败')
+        console.error(error)
+      }
     }
   })
 }
@@ -108,49 +170,51 @@ const submitForm = async () => {
 
 <template>
   <ContentWrap title="分类管理">
-    <div class="mb-10px">
-      <BaseButton type="primary" @click="handleAdd">新增分类</BaseButton>
-    </div>
+    <div v-loading="loading">
+      <div class="mb-10px">
+        <BaseButton type="primary" @click="handleAdd">新增分类</BaseButton>
+      </div>
 
-    <div class="category-grid">
-      <ElCard v-for="category in categories" :key="category.id" class="category-card">
-        <template #header>
-          <div class="card-header">
-            <span class="category-name">{{ category.name }}</span>
+      <div class="category-grid">
+        <ElCard v-for="category in categories" :key="category.id" class="category-card">
+          <template #header>
+            <div class="card-header">
+              <span class="category-name">{{ category.name }}</span>
+            </div>
+          </template>
+
+          <div class="card-content">
+            <p class="description">{{ category.description }}</p>
+            <div class="activity-count"> 活动数量：{{ category.activityCount }} </div>
           </div>
+
+          <div class="card-actions">
+            <BaseButton type="primary" @click="handleEdit(category)"> 编辑 </BaseButton>
+            <BaseButton type="danger" @click="handleDelete(category)"> 删除 </BaseButton>
+          </div>
+        </ElCard>
+      </div>
+
+      <ElDialog v-model="dialogVisible" :title="dialogTitle" width="500px" destroy-on-close>
+        <ElForm ref="formRef" :model="form" :rules="rules" label-width="80px">
+          <ElFormItem label="名称" prop="name">
+            <ElInput v-model="form.name" placeholder="请输入分类名称" />
+          </ElFormItem>
+          <ElFormItem label="描述" prop="description">
+            <ElInput
+              v-model="form.description"
+              type="textarea"
+              :rows="3"
+              placeholder="请输入分类描述"
+            />
+          </ElFormItem>
+        </ElForm>
+        <template #footer>
+          <BaseButton @click="dialogVisible = false">取消</BaseButton>
+          <BaseButton type="primary" @click="submitForm">确定</BaseButton>
         </template>
-
-        <div class="card-content">
-          <p class="description">{{ category.description }}</p>
-          <div class="activity-count"> 活动数量：{{ category.activityCount }} </div>
-        </div>
-
-        <div class="card-actions">
-          <BaseButton type="primary" @click="handleEdit(category)"> 编辑 </BaseButton>
-          <BaseButton type="danger" @click="handleDelete(category)"> 删除 </BaseButton>
-        </div>
-      </ElCard>
+      </ElDialog>
     </div>
-
-    <ElDialog v-model="dialogVisible" :title="dialogTitle" width="500px" destroy-on-close>
-      <ElForm ref="formRef" :model="form" :rules="rules" label-width="80px">
-        <ElFormItem label="名称" prop="name">
-          <ElInput v-model="form.name" placeholder="请输入分类名称" />
-        </ElFormItem>
-        <ElFormItem label="描述" prop="description">
-          <ElInput
-            v-model="form.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入分类描述"
-          />
-        </ElFormItem>
-      </ElForm>
-      <template #footer>
-        <BaseButton @click="dialogVisible = false">取消</BaseButton>
-        <BaseButton type="primary" @click="submitForm">确定</BaseButton>
-      </template>
-    </ElDialog>
   </ContentWrap>
 </template>
 

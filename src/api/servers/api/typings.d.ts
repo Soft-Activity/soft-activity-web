@@ -155,6 +155,8 @@ declare namespace API {
     name?: string
     /** 描述 */
     description?: string
+    /** 活动数量 */
+    activityCount?: number
   }
 
   type ActivityQuery = {
