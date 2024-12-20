@@ -3,9 +3,9 @@ import { PropType, reactive, ref, watch } from 'vue'
 import { Form, FormSchema } from '@/components/Form'
 import { useValidator } from '@/hooks/web/useValidator'
 import { useForm } from '@/hooks/web/useForm'
-import { activityStatus } from '@/constants/activity'
-import { formatToDateTime } from '@/utils/dateUtil'
 import { FormItemRule } from 'element-plus'
+import { getActivityCategorys } from '@/api/servers/api/activityCategory'
+import { getUsers } from '@/api/servers/api/user'
 
 const { required } = useValidator()
 
@@ -21,17 +21,19 @@ const { setValues, getFormData, getElFormExpose, setSchema } = formMethods
 
 // 模拟用户搜索
 const querySearchAsync = async (queryString: string, cb: (arg: any) => void) => {
-  const mockUsers = [
-    { userId: '1', name: '张三', studentId: '2021001' },
-    { userId: '2', name: '李四', studentId: '2021002' },
-    { userId: '3', name: '王五', studentId: '2021003' },
-    { userId: '4', name: '赵六', studentId: '2021004' }
-  ]
+  const { data } = await getUsers({
+    current: 1,
+    pageSize: 50,
+    param: {}
+  })
+  const mockUsers = data.list ?? []
 
   const results = queryString
     ? mockUsers.filter((user) => {
         const lowerQuery = queryString.toLowerCase()
-        return user.name.toLowerCase().includes(lowerQuery) || user.studentId.includes(queryString)
+        return (
+          user?.name?.toLowerCase().includes(lowerQuery) || user?.studentId?.includes(queryString)
+        )
       })
     : mockUsers
 
@@ -47,6 +49,9 @@ const querySearchAsync = async (queryString: string, cb: (arg: any) => void) => 
 
 const handleSelect = (item: Recordable) => {
   console.log('选中用户:', item)
+  setValues({
+    organizerId: item.userId
+  })
 }
 
 // 表单配置
@@ -87,7 +92,7 @@ const schema = reactive<FormSchema[]>([
     }
   },
   {
-    field: 'category',
+    field: 'categoryId',
     label: '分类',
     component: 'Select',
     formItemProps: {
@@ -98,13 +103,21 @@ const schema = reactive<FormSchema[]>([
       placeholder: '请选择活动分类',
       clearable: true
     },
-    optionApi: () => {
-      return [
-        { label: '学术讲座', value: '1' },
-        { label: '文体活动', value: '2' },
-        { label: '志愿服务', value: '3' },
-        { label: '社团活动', value: '4' }
-      ]
+    optionApi: async () => {
+      try {
+        const { data } = await getActivityCategorys({
+          current: 1,
+          pageSize: 20,
+          param: {}
+        })
+        return (data?.list ?? []).map((item) => ({
+          label: item.name,
+          value: item.categoryId
+        }))
+      } catch (error) {
+        console.error('获取活动分类失败:', error)
+        return []
+      }
     }
   },
   {
@@ -146,24 +159,35 @@ const schema = reactive<FormSchema[]>([
     field: 'activityTime',
     label: '活动时间',
     component: 'DatePicker',
+    value:
+      props.currentRow?.startTime && props.currentRow?.endTime
+        ? [props.currentRow.startTime, props.currentRow.endTime]
+        : undefined,
+    formItemProps: {
+      rules: [required()]
+    },
     componentProps: {
       class: 'activity-form-item',
       type: 'datetimerange',
       startPlaceholder: '开始时间',
       endPlaceholder: '结束时间',
-      format: 'YYYY-MM-DD HH:mm',
-      valueFormat: 'YYYY-MM-DD HH:mm',
+      format: 'YYYY-MM-DD HH:mm:ss',
+      valueFormat: 'YYYY-MM-DD HH:mm:ss',
       clearable: true,
-      on: {
-        change: (dates: Date[]) => {
+      onChange: (dates: [string, string] | null) => {
+        if (dates) {
           setValues({
-            startTime: formatToDateTime(dates[0]),
-            endTime: formatToDateTime(dates[1])
+            startTime: dates[0],
+            endTime: dates[1],
+            activityTime: dates
           })
+          console.log('开始时间:', dates[0])
+          console.log('结束时间:', dates[1])
+        } else {
+          console.log('未选择开始时间和结束时间')
         }
       }
-    },
-    value: [props.currentRow?.startTime, props.currentRow?.endTime]
+    }
   },
   {
     field: 'maxCapacity',
@@ -251,6 +275,22 @@ watch(
 defineExpose({
   submit
 })
+
+const fetchCategories = async () => {
+  try {
+    const categories = await getActivityCategorys({
+      current: 1,
+      pageSize: 20,
+      param: {}
+    })
+    console.log('活动分类:', categories)
+  } catch (error) {
+    console.error('获取活动分类失败:', error)
+  }
+}
+
+// 在适当的地方调用fetchCategories
+fetchCategories()
 </script>
 
 <template>
