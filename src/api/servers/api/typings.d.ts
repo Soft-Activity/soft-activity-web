@@ -302,7 +302,7 @@ declare namespace API {
   }
 
   type deleteActivityParams = {
-    id: number
+    id: string
   }
 
   type deleteCommentParams = {

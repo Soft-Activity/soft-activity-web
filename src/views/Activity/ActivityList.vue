@@ -10,87 +10,40 @@ import { useEmitt } from '@/hooks/event/useEmitt'
 import { useRouter } from 'vue-router'
 import { activityStatus, activityStatusOptions } from '@/constants/activity'
 import { ElTag, ElProgress } from 'element-plus'
+import { getActivitys, deleteActivity } from '@/api/servers/api/activity'
 
 const { push } = useRouter()
 
 const { tableRegister, tableMethods, tableState } = useTable({
   fetchDataApi: async () => {
     const { currentPage, pageSize } = tableState
-    // const res = await getTableListApi({
-    //   pageIndex: unref(currentPage),
-    //   pageSize: unref(pageSize)
-    // })
-    const res = {
-      data: {
-        list: [
-          {
-            id: 1,
-            name: '校园歌手大赛',
-            organizer: '学生会文艺部',
-            category: '文艺演出',
-            location: '大学生活动中心',
-            description:
-              '一年一度的校园歌手大赛，展现青春风采，寻找校园音乐达人。比赛分为初赛、复赛和决赛三个阶段，欢迎所有热爱音乐的同学参与。',
-            status: 'PROCEED',
-            startTime: '2024-03-15 19:00:00',
-            endTime: '2024-03-15 22:00:00',
-            maxCapacity: 200,
-            capacity: 150,
-            createTime: '2024-02-20 10:00:00'
-          },
-          {
-            id: 2,
-            name: '春季运动会',
-            organizer: '体育部',
-            category: '体育赛事',
-            location: '校运动场',
-            description:
-              '2024年春季校运动会，设有田径、球类等多个比赛项目，促进校园体育文化建设，增强学生体质。',
-            status: 'NOT_START',
-            startTime: '2024-04-12 08:00:00',
-            endTime: '2024-04-13 17:00:00',
-            maxCapacity: 500,
-            capacity: 320,
-            createTime: '2024-03-01 14:30:00'
-          },
-          {
-            id: 3,
-            name: '就业招聘会',
-            organizer: '就业指导中心',
-            category: '招聘会',
-            location: '图书馆报告厅',
-            description:
-              '2024届毕业生春季专场招聘会，邀请多家知名企业现场招聘，提供上千个就业岗位，助力毕业生职业发展。',
-            status: 'FINISHED',
-            startTime: '2024-03-01 09:00:00',
-            endTime: '2024-03-01 16:00:00',
-            maxCapacity: 300,
-            capacity: 280,
-            createTime: '2024-02-15 09:00:00'
-          },
-          {
-            id: 4,
-            name: '编程马拉松',
-            organizer: '计算机协会',
-            category: '竞赛活动',
-            location: '计算机楼实验室',
-            description: '24小时不间断的编程挑战赛，考验团队协作和技术实力，打造创新解决方案。',
-            status: 'CANCELLED',
-            startTime: '2024-03-20 09:00:00',
-            endTime: '2024-03-21 09:00:00',
-            maxCapacity: 100,
-            capacity: 60,
-            createTime: '2024-02-25 16:00:00'
-          }
-        ],
-        total: 100
-      }
-    }
-    //模拟使用currentPage, pageSize
-    console.log('currentPage', unref(currentPage))
-    console.log('pageSize', unref(pageSize))
+    const res = await getActivitys({
+      current: unref(currentPage),
+      pageSize: unref(pageSize),
+      param: {}
+    })
+
+    // 将API返回的数据结构映射到前端展示需要的结构
+    const mappedList = (res.data.list ?? []).map((item) => ({
+      id: item.activityId,
+      name: item.name,
+      organizer: item.organizerName,
+      category: item.categoryName,
+      location: item.location,
+      description: item.description,
+      status: mapStatus(Number(item.status) || 0), // 确保status是number类型
+      startTime: item.startTime,
+      endTime: item.endTime,
+      maxCapacity: Number(item.maxCapacity), // 确保maxCapacity是number类型
+      capacity: Number(item.capacity), // 确保capacity是number类型
+      createTime: item.createTime,
+      avgRating: Number(item.avgRating), // 确保avgRating是number类型
+      commentCount: Number(item.commentCount), // 确保commentCount是number类型
+      recentComments: item.recentComments
+    }))
+
     return {
-      list: res.data.list,
+      list: mappedList,
       total: res.data.total
     }
   },
@@ -229,16 +182,12 @@ const columns: TableColumn[] = [
             <BaseButton type="primary" onClick={() => action(data.row, 'detail')}>
               详细
             </BaseButton>
-            {data.row.status === 'NOT_START' && (
-              <BaseButton type="warning" onClick={() => action(data.row, 'edit')}>
-                修改
-              </BaseButton>
-            )}
-            {data.row.status === 'NOT_START' && (
-              <BaseButton type="danger" onClick={() => delData(data.row)}>
-                取消
-              </BaseButton>
-            )}
+            <BaseButton type="warning" onClick={() => action(data.row, 'edit')}>
+              修改
+            </BaseButton>
+            <BaseButton type="danger" onClick={() => delData(data.row)}>
+              取消
+            </BaseButton>
           </div>
         )
       }
@@ -317,7 +266,7 @@ const delData = async (row: any | null) => {
   const elTableExpose = await getElTableExpose()
   ids.value = row ? [row.id] : elTableExpose?.getSelectionRows().map((v: any) => v.id) || []
   delLoading.value = true
-  await delList(unref(ids).length).finally(() => {
+  await deleteActivity({ id: unref(ids)[0] }).finally(() => {
     delLoading.value = false
   })
 }
@@ -328,6 +277,17 @@ const action = (row: any, type: 'edit' | 'detail') => {
       id: row.id
     }
   })
+}
+
+// 添加状态映射函数
+const mapStatus = (status: number): string => {
+  const statusMap = {
+    0: 'NOT_START',
+    1: 'PROCEED',
+    2: 'FINISHED',
+    3: 'CANCELLED'
+  }
+  return statusMap[status] || 'NOT_START'
 }
 </script>
 

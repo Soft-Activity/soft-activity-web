@@ -69,7 +69,7 @@ const schema = reactive<FormSchema[]>([
     }
   },
   {
-    field: 'organizer',
+    field: 'organizerId',
     label: '组织者',
     component: 'Autocomplete',
     formItemProps: {
@@ -126,16 +126,20 @@ const schema = reactive<FormSchema[]>([
     label: '活动状态',
     component: 'Select',
     formItemProps: {
-      slots: {
-        default: (data) => {
-          return <div class={`status-tag status-${data.status}`}>{activityStatus[data.status]}</div>
-        }
-      }
+      rules: [required()]
     },
     componentProps: {
       class: 'activity-form-item',
       placeholder: '请选择活动状态',
-      disabled: true
+      clearable: true
+    },
+    optionApi: () => {
+      return [
+        { label: '未开始', value: '0' },
+        { label: '进行中', value: '1' },
+        { label: '已结束', value: '2' },
+        { label: '已取消', value: '3' }
+      ]
     }
   },
   {
