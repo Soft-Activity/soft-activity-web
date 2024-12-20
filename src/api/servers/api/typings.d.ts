@@ -132,6 +132,7 @@ declare namespace API {
     name?: string
     /** 描述 */
     description?: string
+    activityCount?: number
     /** 总活动数 */
     totalActivities?: number
     /** 未开始活动数 */
@@ -155,7 +156,6 @@ declare namespace API {
     name?: string
     /** 描述 */
     description?: string
-    /** 活动数量 */
     activityCount?: number
   }
 
@@ -302,7 +302,7 @@ declare namespace API {
   }
 
   type deleteActivityParams = {
-    id: string
+    id: number
   }
 
   type deleteCommentParams = {
@@ -387,6 +387,10 @@ declare namespace API {
     param: CommentQuery
   }
 
+  type getMenuListParams = {
+    query: MenuQuery
+  }
+
   type getMyActivitysParams = {
     current?: number
     pageSize?: number
@@ -401,6 +405,10 @@ declare namespace API {
     current?: number
     pageSize?: number
     param: RegistrationQuery
+  }
+
+  type getRoleMenusParams = {
+    roleId: number
   }
 
   type getRoleParams = {
@@ -496,6 +504,113 @@ declare namespace API {
     total?: number
   }
 
+  type Menu = {
+    /** 菜单ID */
+    menuId?: number
+    /** 父菜单ID */
+    parentId?: number
+    /** 路由名称 */
+    name?: string
+    /** 路由路径 */
+    path?: string
+    /** 组件路径 */
+    component?: string
+    /** 重定向地址 */
+    redirect?: string
+    /** 菜单标题 */
+    title?: string
+    /** 图标 */
+    icon?: string
+    /** 排序 */
+    sortOrder?: number
+    /** 是否隐藏 */
+    hidden?: boolean
+    /** 总是显示 */
+    alwaysShow?: boolean
+    /** 是否缓存 */
+    keepAlive?: boolean
+    /** 是否显示面包屑 */
+    breadcrumb?: boolean
+    /** 激活菜单 */
+    activeMenu?: string
+    /** 不显示标签页 */
+    noTagsView?: boolean
+    /** 是否可跳转 */
+    canTo?: boolean
+    /** 创建时间 */
+    createTime?: string
+    /** 更新时间 */
+    updateTime?: string
+    /** 0禁用 ，1启用 */
+    status?: number
+  }
+
+  type MenuQuery = {
+    /** 菜单ID */
+    menuId?: number
+    /** 父菜单ID */
+    parentId?: number
+    /** 路由名称 */
+    name?: string
+    /** 路由路径 */
+    path?: string
+    /** 组件路径 */
+    component?: string
+    /** 重定向地址 */
+    redirect?: string
+    /** 菜单标题 */
+    title?: string
+    /** 图标 */
+    icon?: string
+    /** 排序 */
+    sortOrder?: number
+    /** 是否隐藏 */
+    hidden?: boolean
+    /** 总是显示 */
+    alwaysShow?: boolean
+    /** 是否缓存 */
+    keepAlive?: boolean
+    /** 是否显示面包屑 */
+    breadcrumb?: boolean
+    /** 激活菜单 */
+    activeMenu?: string
+    /** 不显示标签页 */
+    noTagsView?: boolean
+    /** 是否可跳转 */
+    canTo?: boolean
+    /** 创建时间 */
+    createTime?: string
+    /** 更新时间 */
+    updateTime?: string
+    /** 0禁用 ，1启用 */
+    status?: number
+  }
+
+  type MenuVO = {
+    menuId?: number
+    parentId?: number
+    name?: string
+    path?: string
+    component?: string
+    redirect?: string
+    meta?: MetaVO
+    sortOrder?: number
+    status?: number
+  }
+
+  type MetaVO = {
+    title?: string
+    icon?: string
+    hidden?: boolean
+    alwaysShow?: boolean
+    noCache?: boolean
+    breadcrumb?: boolean
+    activeMenu?: string
+    noTagsView?: boolean
+    canTo?: boolean
+    permission?: string[]
+  }
+
   type registerActivityParams = {
     activityId: number
   }
@@ -548,6 +663,11 @@ declare namespace API {
     ename?: string
   }
 
+  type RoleMenuDTO = {
+    roleId?: number
+    menuIds?: number[]
+  }
+
   type RoleQuery = {
     /** 用户id */
     roleId?: number
@@ -564,6 +684,11 @@ declare namespace API {
     cname?: string
     /** 角色英文名称 */
     ename?: string
+  }
+
+  type RouteVO = {
+    routes?: MenuVO[]
+    permissions?: string[]
   }
 
   type Student = {

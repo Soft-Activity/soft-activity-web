@@ -7,6 +7,7 @@ import type {
 } from 'vue-router'
 import { isUrl } from '@/utils/is'
 import { omit, cloneDeep } from 'lodash-es'
+import { useUserStore } from '@/store/modules/user'
 
 const modules = import.meta.glob('../views/**/*.{vue,tsx}')
 
@@ -37,17 +38,36 @@ export const getRawRoute = (route: RouteLocationNormalized): RouteLocationNormal
   }
 }
 
-// 前端控制路由生成
+// 修改权限判断方法
+export function hasPermission(route: AppRouteRecordRaw, userRoles: string[]): boolean {
+  // 如果路由没有配置 permission，则所有人都可以访问
+  // 如果路由没有配置 permission，则所有人都可以访问
+  if (!route.meta?.permission) {
+    return true
+  }
+  console.log('userRoles', userRoles)
+  console.log('name', route.name, 'route.meta?.permission', route.meta?.permission)
+  // 如果配置了 permission，则需要判断角色权限
+  return userRoles.some((role) => route.meta?.permission?.includes(role))
+}
+
+// 修改路由生成方法
 export const generateRoutesByFrontEnd = (
   routes: AppRouteRecordRaw[],
-  keys: string[],
+  roles: string[],
   basePath = '/'
 ): AppRouteRecordRaw[] => {
   const res: AppRouteRecordRaw[] = []
-
+  console.log('generateRoutesByFrontEnd', routes, roles, basePath)
   for (const route of routes) {
+    // 如果父路由没有权限，则跳过整个路由树
+    // console.log('route.name', route.name, 'route.meta?.permission', route.meta?.permission)
+    // console.log('hasPermission', hasPermission(route, roles))
+    if (!hasPermission(route, roles)) {
+      continue
+    }
+
     const meta = route.meta ?? {}
-    // skip some route
     if (meta.hidden && !meta.canTo) {
       continue
     }
@@ -63,27 +83,22 @@ export const generateRoutesByFrontEnd = (
       ) as string
     }
 
-    // 开发者可以根据实际情况进行扩展
-    for (const item of keys) {
-      // 通过路径去匹配
-      if (isUrl(item) && (onlyOneChild === item || route.path === item)) {
-        data = Object.assign({}, route)
-      } else {
-        const routePath = (onlyOneChild ?? pathResolve(basePath, route.path)).trim()
-        if (routePath === item || meta.followRoute === item) {
-          data = Object.assign({}, route)
-        }
+    // 直接复制路由数据
+    data = Object.assign({}, route)
+
+    // 递归处理子路由
+    if (route.children && data) {
+      // 过滤有权限的子路由
+      const accessibleChildren = route.children.filter((child) => hasPermission(child, roles))
+      if (accessibleChildren.length > 0) {
+        data.children = generateRoutesByFrontEnd(
+          accessibleChildren,
+          roles,
+          pathResolve(basePath, data.path)
+        )
       }
     }
 
-    // recursive child routes
-    if (route.children && data) {
-      data.children = generateRoutesByFrontEnd(
-        route.children,
-        keys,
-        pathResolve(basePath, data.path)
-      )
-    }
     if (data) {
       res.push(data as AppRouteRecordRaw)
     }

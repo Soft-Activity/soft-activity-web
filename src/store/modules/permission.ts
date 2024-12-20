@@ -41,6 +41,7 @@ export const usePermissionStore = defineStore('permission', {
       type: 'server' | 'frontEnd' | 'static',
       routers?: AppCustomRouteRecordRaw[] | string[]
     ): Promise<unknown> {
+      console.log('generateRoutes-first', type, routers)
       return new Promise<void>((resolve) => {
         let routerMap: AppRouteRecordRaw[] = []
         if (type === 'server') {
@@ -67,6 +68,9 @@ export const usePermissionStore = defineStore('permission', {
         ])
         // 渲染菜单的所有路由
         this.routers = cloneDeep(constantRouterMap).concat(routerMap)
+        // console.log('generateRoutes-constantRouterMap', constantRouterMap)
+        // console.log('generateRoutes-routerMap', routerMap)
+        console.log('generateRoutes-end', this.routers)
         resolve()
       })
     },

@@ -278,6 +278,8 @@ const handleDelete = async (row: API.UserVO, cellIndex: number) => {
 
 // 提交表单
 const submitForm = () => {
+  //@ts-ignore
+  form.value.password = password.value
   formRef.value?.validate(async (valid) => {
     if (!valid) return
     try {

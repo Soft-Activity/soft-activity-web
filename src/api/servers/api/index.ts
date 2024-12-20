@@ -11,6 +11,7 @@ import * as activityCategory from './activityCategory'
 import * as activityAiReview from './activityAiReview'
 import * as activity from './activity'
 import * as account from './account'
+import * as menu from './menu'
 import * as commonController from './commonController'
 import * as ai from './ai'
 export default {
@@ -23,6 +24,7 @@ export default {
   activityAiReview,
   activity,
   account,
+  menu,
   commonController,
   ai
 }

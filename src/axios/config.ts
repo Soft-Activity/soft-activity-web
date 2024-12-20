@@ -6,7 +6,7 @@ import { useUserStoreWithOut } from '@/store/modules/user'
 import { objToFormData } from '@/utils'
 
 const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
-  console.log('config', config)
+  // console.log('config', config)
   if (
     config.method === 'post' &&
     config.headers['Content-Type'] === 'application/x-www-form-urlencoded'
@@ -36,7 +36,7 @@ const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
 }
 
 const defaultResponseInterceptors = (response: AxiosResponse) => {
-  console.log('response', response)
+  // console.log('response', response)
   if (response?.config?.responseType === 'blob') {
     return response
   }

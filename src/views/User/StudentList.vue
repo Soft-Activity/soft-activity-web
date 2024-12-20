@@ -17,13 +17,7 @@ import {
   ElUpload,
   ElTag
 } from 'element-plus'
-import type {
-  FormInstance,
-  FormRules,
-  UploadFile,
-  UploadProps,
-  UploadRequestOptions
-} from 'element-plus'
+import type { FormInstance, FormRules, UploadProps, UploadRequestOptions } from 'element-plus'
 import {
   addStudent,
   batchImportStudents,

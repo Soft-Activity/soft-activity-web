@@ -152,7 +152,6 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         meta: {
           title: '活动详情',
           noTagsView: true,
-          noCache: true,
           hidden: true,
           canTo: true,
           activeMenu: '/activity/list'
@@ -179,23 +178,17 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     name: 'User',
     meta: {
       title: '用户管理',
-      icon: 'carbon:user'
+      icon: 'carbon:user',
+      permission: ['SUPER_ADMIN', 'TEACHER']
     },
     children: [
-      {
-        path: 'roles',
-        name: 'RoleList',
-        component: () => import('@/views/User/RoleList.vue'),
-        meta: {
-          title: '角色列表'
-        }
-      },
       {
         path: 'users',
         name: 'UserList',
         component: () => import('@/views/User/UserList.vue'),
         meta: {
-          title: '用户列表'
+          title: '用户列表',
+          permission: ['SUPER_ADMIN']
         }
       },
       {
@@ -203,7 +196,38 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         name: 'StudentList',
         component: () => import('@/views/User/StudentList.vue'),
         meta: {
-          title: '学生列表'
+          title: '学生列表',
+          permission: ['TEACHER']
+        }
+      }
+    ]
+  },
+  {
+    path: '/authorization',
+    component: Layout,
+    name: 'Authorization',
+    meta: {
+      title: '权限管理',
+      icon: 'carbon:user-admin',
+      permission: ['SUPER_ADMIN']
+    },
+    children: [
+      {
+        path: 'menu',
+        name: 'Menu',
+        component: () => import('@/views/Authorization/Menu/Menu.vue'),
+        meta: {
+          title: '菜单管理',
+          permission: ['SUPER_ADMIN']
+        }
+      },
+      {
+        path: 'roles',
+        name: 'RoleList',
+        component: () => import('@/views/Authorization/Role/RoleList.vue'),
+        meta: {
+          title: '角色列表',
+          permission: ['SUPER_ADMIN']
         }
       }
     ]

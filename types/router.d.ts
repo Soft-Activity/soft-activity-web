@@ -29,7 +29,7 @@ import { defineComponent } from 'vue'
 
     canTo: true               设置为true即使hidden为true，也依然可以进行路由跳转(默认 false)
 
-    permission: ['edit','add', 'delete']    设置该路由的权限
+    permission: ['ADMIN', 'TEACHER', 'STUDENT']    设置该路由的权限
   }
 **/
 declare module 'vue-router' {

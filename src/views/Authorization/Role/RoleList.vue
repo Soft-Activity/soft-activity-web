@@ -2,47 +2,17 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { Table, TableColumn } from '@/components/Table'
 import { Search } from '@/components/Search'
-import { reactive, ref } from 'vue'
+import { reactive, ref, unref } from 'vue'
 import { BaseButton } from '@/components/Button'
 import { useTable } from '@/hooks/web/useTable'
 import { FormSchema } from '@/components/Form'
 import { ElMessage, ElMessageBox, ElDialog, ElForm, ElFormItem, ElInput } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { addRole, deleteRole, getRoles, updateRole } from '@/api/servers/api/role'
+import { assignMenu } from '@/api/servers/api/menu'
+import RoleMenuManage from './components/RoleMenuManage.vue'
 
 // 模拟数据
-const mockRoles = [
-  {
-    roleId: 1,
-    cname: '超级管理员',
-    ename: 'SUPER_ADMIN'
-  },
-  {
-    roleId: 2,
-    cname: '老师',
-    ename: 'TEACHER'
-  },
-  {
-    roleId: 3,
-    cname: '学生',
-    ename: 'STUDENT'
-  },
-  {
-    roleId: 4,
-    cname: '普通管理员',
-    ename: 'ADMIN'
-  },
-  {
-    roleId: 5,
-    cname: '游客',
-    ename: 'GUEST'
-  },
-  {
-    roleId: 6,
-    cname: '普通用户',
-    ename: 'USER'
-  }
-]
 
 const { tableRegister, tableMethods, tableState } = useTable({
   fetchDataApi: async () => {
@@ -85,8 +55,11 @@ const columns: TableColumn[] = [
       default: (data: { row: API.RoleVO }) => {
         return (
           <>
-            <BaseButton type="primary" onClick={() => handleEdit(data.row)}>
+            <BaseButton type="success" onClick={() => handleAssignMenu(data.row)}>
               编辑
+            </BaseButton>
+            <BaseButton type="info" onClick={() => handleViewMenu(data.row)}>
+              查看
             </BaseButton>
             <BaseButton type="danger" onClick={() => handleDelete(data.row.roleId!)}>
               删除
@@ -149,13 +122,6 @@ const handleAdd = () => {
   }
 }
 
-// 编辑角色
-const handleEdit = (row: API.RoleVO) => {
-  dialogTitle.value = '编辑角色'
-  dialogVisible.value = true
-  form.value = { ...row }
-}
-
 // 删除角色
 const handleDelete = (roleId: number) => {
   ElMessageBox.confirm('确认删除该角色?', '提示', {
@@ -199,6 +165,59 @@ const submitForm = async () => {
     }
   })
 }
+
+// 添加菜单相关方法
+const menuDialogVisible = ref(false)
+const menuDialogTitle = ref('')
+const currentRow = ref<API.RoleVO>()
+const actionType = ref('')
+const menuManageRef = ref<InstanceType<typeof RoleMenuManage> | null>(null)
+
+const handleAssignMenu = (row: API.RoleVO) => {
+  menuDialogTitle.value = '编辑角色'
+  actionType.value = 'assign'
+  currentRow.value = row
+  menuDialogVisible.value = true
+}
+
+const handleViewMenu = (row: API.RoleVO) => {
+  menuDialogTitle.value = '查看角色'
+  actionType.value = 'view'
+  currentRow.value = row
+  menuDialogVisible.value = true
+}
+
+const saveMenu = async () => {
+  if (actionType.value === 'assign') {
+    const menuManage = unref(menuManageRef)
+    const formData = await menuManage?.submit()
+    if (formData) {
+      try {
+        // 先更新角色基本信息
+        await updateRole(
+          { id: formData.roleId! },
+          {
+            cname: formData.cname,
+            ename: formData.ename
+          }
+        )
+
+        // 再分配菜单
+        await assignMenu({
+          roleId: formData.roleId,
+          menuIds: formData.menuIds
+        })
+
+        ElMessage.success('保存成功')
+        menuDialogVisible.value = false
+        tableMethods.getList()
+      } catch (error) {
+        console.error('保存失败:', error)
+        ElMessage.error('保存失败')
+      }
+    }
+  }
+}
 </script>
 
 <template>
@@ -233,6 +252,20 @@ const submitForm = async () => {
       <template #footer>
         <BaseButton @click="dialogVisible = false">取消</BaseButton>
         <BaseButton type="primary" @click="submitForm">确定</BaseButton>
+      </template>
+    </ElDialog>
+    <ElDialog v-model="menuDialogVisible" :title="menuDialogTitle" width="800px" destroy-on-close>
+      <RoleMenuManage
+        ref="menuManageRef"
+        :current-row="currentRow"
+        :mode="actionType === 'assign' ? 'edit' : 'view'"
+      />
+
+      <template #footer>
+        <BaseButton @click="menuDialogVisible = false">取消</BaseButton>
+        <BaseButton v-if="actionType === 'assign'" type="primary" @click="saveMenu">
+          确定
+        </BaseButton>
       </template>
     </ElDialog>
   </ContentWrap>

@@ -12,6 +12,7 @@ import { useValidator } from '@/hooks/web/useValidator'
 import { useUserStore } from '@/store/modules/user'
 import { BaseButton } from '@/components/Button'
 import { getCurrentUser, loginByPassword } from '@/api/servers/api/user'
+import { getMyRoutes } from '@/api/servers/api/menu'
 
 const { required } = useValidator()
 
@@ -244,8 +245,27 @@ const signIn = async () => {
           //获取当前用户信息
           const userInfo = await getCurrentUser()
           userStore.setUserInfo(userInfo.data)
-          // 使用静态路由
-          await permissionStore.generateRoutes('static').catch(() => {})
+
+          console.log('appStore.getDynamicRouter', appStore.getDynamicRouter)
+          console.log('appStore.serverDynamicRouter', appStore.getServerDynamicRouter)
+          // 是否使用动态路由
+          if (appStore.getDynamicRouter) {
+            if (appStore.getServerDynamicRouter) {
+              const routers = await getMyRoutes()
+              userStore.setRoleRouters(routers.data)
+              await permissionStore.generateRoutes(
+                'server',
+                //@ts-ignore
+                routers.data.routes as AppRouteRecordRaw[]
+              )
+            } else {
+              const routers = await getMyRoutes()
+              userStore.setRoleRouters(routers.data)
+              await permissionStore.generateRoutes('frontEnd', routers.data.permissions)
+            }
+          } else {
+            await permissionStore.generateRoutes('static')
+          }
           permissionStore.getAddRouters.forEach((route) => {
             addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
           })

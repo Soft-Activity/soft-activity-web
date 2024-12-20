@@ -9,7 +9,8 @@ interface UserState {
   userInfo?: API.UserVO
   tokenKey: string
   token: string
-  roleRouters?: string[] | AppCustomRouteRecordRaw[]
+  routes?: AppCustomRouteRecordRaw[]
+  userRoles?: string[]
   rememberMe: boolean
   loginInfo?: API.UserPasswordLoginDTO
 }
@@ -20,7 +21,8 @@ export const useUserStore = defineStore('user', {
       userInfo: undefined,
       tokenKey: 'token',
       token: '',
-      roleRouters: undefined,
+      routes: undefined,
+      userRoles: undefined,
       // 记住我
       rememberMe: true,
       loginInfo: undefined
@@ -37,8 +39,11 @@ export const useUserStore = defineStore('user', {
     getUserInfo(): API.UserVO | undefined {
       return this.userInfo
     },
-    getRoleRouters(): string[] | AppCustomRouteRecordRaw[] | undefined {
-      return this.roleRouters
+    getRoutes(): AppCustomRouteRecordRaw[] | undefined {
+      return this.routes
+    },
+    getUserRoles(): string[] | undefined {
+      return this.userRoles
     },
     getRememberMe(): boolean {
       return this.rememberMe
@@ -63,16 +68,9 @@ export const useUserStore = defineStore('user', {
     setUserInfo(userInfo?: API.UserVO) {
       this.userInfo = userInfo
     },
-    setRoleRouters(roleRouters: string[] | AppCustomRouteRecordRaw[]) {
-      this.roleRouters = roleRouters
-      if (this.userInfo) {
-        this.userInfo.roles = Array.isArray(roleRouters)
-          ? roleRouters.map((route) => (typeof route === 'string' ? route : route.name))
-          : []
-        if (this.userInfo.roles.length === 0) {
-          this.userInfo.roles.push({ roleId: 1, cname: '超级管理员', ename: 'superAdmin' })
-        }
-      }
+    setRoleRouters(roleRouters: API.RouteVO) {
+      this.routes = (roleRouters?.routes as AppCustomRouteRecordRaw[]) || []
+      this.userRoles = (roleRouters?.permissions as string[]) || []
     },
     logoutConfirm() {
       const { t } = useI18n()
@@ -91,7 +89,10 @@ export const useUserStore = defineStore('user', {
       tagsViewStore.delAllViews()
       this.setToken('')
       this.setUserInfo(undefined)
-      this.setRoleRouters([])
+      this.setRoleRouters({
+        routes: [],
+        permissions: []
+      })
       router.replace('/login')
     },
     logout() {
