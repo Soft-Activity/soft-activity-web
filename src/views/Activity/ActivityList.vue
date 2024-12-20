@@ -9,7 +9,7 @@ import { FormSchema } from '@/components/Form'
 import { useEmitt } from '@/hooks/event/useEmitt'
 import { useRouter } from 'vue-router'
 import { activityStatus, activityStatusOptions } from '@/constants/activity'
-import { ElTag, ElProgress } from 'element-plus'
+import { ElTag, ElProgress, ElMessageBox, ElMessage } from 'element-plus'
 import { getActivitys, deleteActivity } from '@/api/servers/api/activity'
 
 const { push } = useRouter()
@@ -20,7 +20,7 @@ const { tableRegister, tableMethods, tableState } = useTable({
     const res = await getActivitys({
       current: unref(currentPage),
       pageSize: unref(pageSize),
-      param: {}
+      param: unref(searchParams)
     })
 
     // 将API返回的数据结构映射到前端展示需要的结构
@@ -253,6 +253,7 @@ const searchSchema = reactive<FormSchema[]>([
 const searchParams = ref({})
 const setSearchParams = (params: any) => {
   searchParams.value = params
+  currentPage.value = 1
   getList()
 }
 const ids = ref<string[]>([])
@@ -263,12 +264,31 @@ const AddAction = () => {
 }
 const delLoading = ref(false)
 const delData = async (row: any | null) => {
-  const elTableExpose = await getElTableExpose()
-  ids.value = row ? [row.id] : elTableExpose?.getSelectionRows().map((v: any) => v.id) || []
-  delLoading.value = true
-  await deleteActivity({ id: unref(ids)[0] }).finally(() => {
+  try {
+    await ElMessageBox.confirm('确认要取消该活动吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+
+    const elTableExpose = await getElTableExpose()
+    ids.value = row ? [row.id] : elTableExpose?.getSelectionRows().map((v: any) => v.id) || []
+    delLoading.value = true
+
+    const res = await deleteActivity({ id: unref(ids)[0] })
+
+    if (res.status === 200) {
+      ElMessage.success('活动取消成功')
+      await getList()
+    } else {
+      ElMessage.error(res.message || '操作失败')
+    }
+  } catch (error) {
+    console.error('删除失败:', error)
+    ElMessage.error('操作失败')
+  } finally {
     delLoading.value = false
-  })
+  }
 }
 const action = (row: any, type: 'edit' | 'detail') => {
   push({
