@@ -2,7 +2,7 @@
 VITE_NODE_ENV=production
 
 # 接口前缀
-VITE_API_BASE_PATH=
+VITE_API_BASE_PATH=http://47.115.57.164/api
 
 # 打包路径
 VITE_BASE_PATH=/
@@ -36,3 +36,9 @@ VITE_USE_CSS_SPLIT=true
 
 # 是否使用在线图标
 VITE_USE_ONLINE_ICON=true
+
+# 是否使用动态路由
+VITE_USE_DYNAMIC_ROUTER=true
+
+# 是否使用服务端动态路由
+VITE_USE_SERVER_DYNAMIC_ROUTER=true

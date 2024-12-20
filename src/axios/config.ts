@@ -4,6 +4,7 @@ import qs from 'qs'
 import { TRANSFORM_REQUEST_DATA } from '@/constants'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { objToFormData } from '@/utils'
+import { API_BASE_URL } from '@/constants/api'
 
 const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
   // console.log('config', config)
@@ -31,6 +32,11 @@ const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
     url = url.substring(0, url.length - 1)
     config.params = {}
     config.url = url
+  }
+  //当请求路径以 /common 开头时，基本服务切换为开发环境的
+  if (config.url?.startsWith('/common')) {
+    //使用固定的基本路径
+    config.baseURL = API_BASE_URL
   }
   return config
 }
