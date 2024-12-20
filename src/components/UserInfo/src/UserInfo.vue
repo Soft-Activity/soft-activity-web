@@ -8,6 +8,7 @@ import LockPage from './components/LockPage.vue'
 import { useLockStore } from '@/store/modules/lock'
 import { useUserStore } from '@/store/modules/user'
 import { useRouter } from 'vue-router'
+import defaultAvatar from '@/assets/imgs/avatar.jpg'
 
 const { push } = useRouter()
 const userStore = useUserStore()
@@ -50,7 +51,7 @@ const userRoles: Ref<string[]> = computed(() => {
   <ElDropdown class="custom-hover" :class="prefixCls" trigger="click">
     <div class="flex items-center">
       <img
-        src="@/assets/imgs/avatar.jpg"
+        :src="userStore.getUserInfo?.avatar || defaultAvatar"
         alt=""
         class="w-[calc(var(--logo-height)-25px)] rounded-[50%]"
       />

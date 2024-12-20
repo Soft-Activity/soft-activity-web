@@ -13,7 +13,6 @@ import Detail from './components/Detail.vue'
 import { Dialog } from '@/components/Dialog'
 import { BaseButton } from '@/components/Button'
 import { addMenu, getMenuList, updateMenu } from '@/api/servers/api/menu'
-import secondsToTime from '@uppy/utils/lib/secondsToTime'
 
 const { t } = useI18n()
 
