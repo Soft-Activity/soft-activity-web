@@ -5,9 +5,10 @@ import { ref } from 'vue'
 import ActivityDescription from '@/views/Activity/components/ActivityDescription.vue'
 import RegistrationTable from '@/views/Activity/components/RegistrationTable.vue'
 import CommentTable from '@/views/Activity/components/CommentTable.vue'
-import { ContentWrap } from '@/components/ContentWrap'
-import { ElCard, ElTag, ElProgress } from 'element-plus'
 import AIAnalysis from './components/AIAnalysis.vue'
+import { getActivity } from '@/api/servers/api/activity'
+import { getActivityAiReview } from '@/api/servers/api/activityAiReview'
+import { ElMessage } from 'element-plus'
 
 interface ActivityDetail {
   id: number
@@ -23,14 +24,19 @@ interface ActivityDetail {
   capacity: number
   createTime: string
   aiAnalysis?: {
-    summary: string
-    keywords: string[]
-    sentiment: {
-      positive: number
-      neutral: number
-      negative: number
-    }
-  }
+    aiAnalysis?: string
+    averageScore?: number
+    goodNum?: number
+    mediumNum?: number
+    poorNum?: number
+  } | null
+}
+
+const statusMap = {
+  0: '未开始',
+  1: '进行中',
+  2: '已结束',
+  3: '已取消'
 }
 
 const currentRow = ref<ActivityDetail>({} as ActivityDetail)
@@ -39,34 +45,37 @@ const { push, go } = useRouter()
 
 const { query } = useRoute()
 const getTableDet = async () => {
-  // const res = await getTableDetApi(query.id as string)
-  console.log('query', query.id)
-  const res = {
-    id: 1,
-    name: '活动1',
-    organizer: '组织者1',
-    category: '分类1',
-    location: '活动地点1',
-    description: '描述1sssssssssssssssssssssssssssssssssssssssssss',
-    status: 'NOT_START',
-    startTime: '2024-11-26 11:00:00',
-    endTime: '2024-11-26 11:00:00',
-    maxCapacity: 100,
-    capacity: 0,
-    createTime: '2024-11-26 11:00:00',
-    aiAnalysis: {
-      summary:
-        '根据评论分析，此活动总体评价良好。85%的参与者对活动表示满意，主要亮点在于活动组织有序和内容丰富。建议改进的方面包括场地安排和时间控制。',
-      keywords: ['组织有序', '内容丰富', '场地改进', '时间控制'],
-      sentiment: {
-        positive: 85,
-        neutral: 10,
-        negative: 5
+  try {
+    const [activityRes, aiAnalysisRes] = await Promise.allSettled([
+      getActivity({
+        id: Number(query.id) || 0
+      }),
+      getActivityAiReview({
+        id: Number(query.id) || 0
+      })
+    ])
+
+    if (activityRes.status === 'fulfilled' && activityRes.value?.data) {
+      const activityData = activityRes.value.data
+      currentRow.value = {
+        id: activityData.activityId || 1,
+        name: activityData.name || 'testActivity',
+        organizer: activityData.organizerName || 'test',
+        category: activityData.categoryName || 'testCategory',
+        location: activityData.location || 'testLocation',
+        description: activityData.description || 'testDescription',
+        status: statusMap[Number(activityData.status) ?? 0] || '未开始',
+        startTime: activityData.startTime || '2024-03-15 19:00:00',
+        endTime: activityData.endTime || '2024-03-15 22:00:00',
+        maxCapacity: activityData.maxCapacity || 200,
+        capacity: activityData.capacity || 0,
+        createTime: activityData.createTime || '2024-03-15 22:00:00',
+        aiAnalysis: aiAnalysisRes.status === 'fulfilled' ? aiAnalysisRes.value?.data || null : null
       }
     }
-  }
-  if (res) {
-    currentRow.value = res
+  } catch (error) {
+    console.error('获取活动详情失败:', error)
+    ElMessage.error('获取活动详情失败，请稍后重试')
   }
 }
 
@@ -85,7 +94,10 @@ getTableDet()
     </template>
     <div class="detail-container">
       <ActivityDescription :currentRow="currentRow" />
-      <AIAnalysis v-if="currentRow?.aiAnalysis" :data="currentRow.aiAnalysis" />
+      <AIAnalysis
+        v-if="currentRow?.aiAnalysis && Object.keys(currentRow.aiAnalysis).length > 0"
+        :data="currentRow.aiAnalysis"
+      />
       <RegistrationTable :activityId="query.id" />
       <CommentTable :activityId="query.id" />
     </div>

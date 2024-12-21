@@ -4,6 +4,8 @@ import { useTable } from '@/hooks/web/useTable'
 import { PropType, unref } from 'vue'
 import { ContentWrap } from '@/components/ContentWrap'
 import { BaseButton } from '@/components/Button'
+import { getRegistrations } from '@/api/servers/api/registration'
+
 const { activityId } = defineProps({
   activityId: {
     type: Object as PropType<any>,
@@ -15,47 +17,14 @@ const { tableRegister, tableMethods, tableState } = useTable({
   fetchDataApi: async () => {
     const { currentPage, pageSize } = tableState
     console.log('activityId', activityId)
-    // const res = await getTableListApi({
-    //   pageIndex: unref(currentPage),
-    //   pageSize: unref(pageSize)
-    // })
-    const res = {
-      data: {
-        list: [
-          {
-            studentId: '2018001',
-            name: '张三',
-            college: '计算机与软件学院',
-            phone: '12345678901',
-            status: '已报名',
-            createTime: '2024-11-26 11:00:00'
-          },
-          {
-            studentId: '2018002',
-            name: '李四',
-            college: '计算机与软件学院',
-            phone: '12345678902',
-            status: '已报名',
-            createTime: '2024-11-26 11:00:00'
-          },
-          {
-            studentId: '2018003',
-            name: '王五',
-            college: '计算机与软件学院',
-            phone: '12345678903',
-            status: '已报名',
-            createTime: '2024-11-26 11:00:00'
-          }
-        ],
-        total: 100
-      }
-    }
-    //模拟使用currentPage, pageSize
-    console.log('currentPage', unref(currentPage))
-    console.log('pageSize', unref(pageSize))
+    const res = await getRegistrations({
+      current: unref(currentPage),
+      pageSize: unref(pageSize),
+      param: { activityId: activityId }
+    })
     return {
-      list: res.data.list,
-      total: res.data.total
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? 0
     }
   },
   fetchDelApi: async () => {
@@ -70,24 +39,27 @@ getList()
 //表单列表设置
 const columns: TableColumn[] = [
   {
-    field: 'studentId',
+    field: 'schoolId',
     label: '学号'
   },
   {
-    field: 'name',
+    field: 'userName',
     label: '姓名'
   },
   {
-    field: 'college',
+    field: 'collegeName',
     label: '学院'
   },
   {
-    field: 'phone',
-    label: '联系方式'
-  },
-  {
     field: 'status',
-    label: '状态'
+    label: '状态',
+    formatter: (row) => {
+      const statusMap = {
+        0: '已报名',
+        1: '已取消'
+      }
+      return statusMap[row.status] || '未知状态'
+    }
   },
   {
     field: 'createTime',

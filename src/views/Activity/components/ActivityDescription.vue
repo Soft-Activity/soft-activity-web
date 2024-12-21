@@ -36,12 +36,7 @@ const schema = reactive<DescriptionsSchema[]>([
   },
   {
     field: 'status',
-    label: '活动状态',
-    slots: {
-      default: (data: any) => {
-        return <div>{activityStatus[data.status]}</div>
-      }
-    }
+    label: '活动状态'
   },
   {
     field: 'activityTime',

@@ -196,6 +196,23 @@ declare namespace API {
     isStudentComment?: boolean
   }
 
+  // 首先定义 AI 分析的接口类型
+  interface AiAnalysis {
+    /** AI 分析总结 */
+    summary: string
+    /** 关键词列表 */
+    keywords: string[]
+    /** 情感分析 */
+    sentiment: {
+      /** 正面评价占比 */
+      positive: number
+      /** 中性评价占比 */
+      neutral: number
+      /** 负面评价占比 */
+      negative: number
+    }
+  }
+
   type ActivityVO = {
     /** 活动id */
     activityId?: number
@@ -231,6 +248,8 @@ declare namespace API {
     recentComments?: CommentVO[]
     /** 评论总数 */
     commentCount?: number
+    /** AI 分析结果 */
+    aiAnalysis?: AiAnalysis
   }
 
   type aiParams = {
@@ -620,6 +639,10 @@ declare namespace API {
     registrationId?: number
     /** 学生学号 */
     studentId?: string
+    /**学生名字 */
+    userName?: string
+    /** 学生学院 */
+    collegeName?: string
     /** 活动id */
     activityId?: number
     /** 报名状态 0 已报名 1 已取消 */
@@ -706,7 +729,7 @@ declare namespace API {
     type?: string
     /** 性别 男/女 */
     gender?: string
-    /** 是否已认证0为认证，1已认证 */
+    /** 是否已认证0为认��，1已认证 */
     isVerified?: boolean
   }
 

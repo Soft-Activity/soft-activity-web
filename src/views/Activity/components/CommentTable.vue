@@ -5,6 +5,7 @@ import { PropType, unref } from 'vue'
 import { ContentWrap } from '@/components/ContentWrap'
 import { BaseButton } from '@/components/Button'
 import { ElRate } from 'element-plus'
+import { getComments } from '@/api/servers/api/comment'
 
 const { activityId } = defineProps({
   activityId: {
@@ -16,55 +17,14 @@ const { tableRegister, tableMethods, tableState } = useTable({
   fetchDataApi: async () => {
     const { currentPage, pageSize } = tableState
     console.log('activityId', activityId)
-    // const res = await getTableListApi({
-    //   pageIndex: unref(currentPage),
-    //   pageSize: unref(pageSize)
-    // })
-    const res = {
-      data: {
-        list: [
-          {
-            studentId: '2018001',
-            name: '张三',
-            college: '计算机与软件学院',
-            content: '太棒了',
-            rating: 5,
-            createTime: '2024-11-26 11:00:00'
-          },
-          {
-            studentId: '2018002',
-            name: '李四',
-            college: '计算机与软件学院',
-            content: '很好',
-            rating: 4,
-            createTime: '2024-11-26 11:00:00'
-          },
-          {
-            studentId: '2018003',
-            name: '王五',
-            college: '计算机与软件学院',
-            content: '还行',
-            rating: 3,
-            createTime: '2024-11-26 11:00:00'
-          },
-          {
-            studentId: '2018004',
-            name: '赵六',
-            college: '计算机与软件学院',
-            content: '不好',
-            rating: 2,
-            createTime: '2024-11-26 11:00:00'
-          }
-        ],
-        total: 100
-      }
-    }
-    //模拟使用currentPage, pageSize
-    console.log('currentPage', unref(currentPage))
-    console.log('pageSize', unref(pageSize))
+    const res = await getComments({
+      current: unref(currentPage),
+      pageSize: unref(pageSize),
+      param: { activityId: activityId }
+    })
     return {
-      list: res.data.list,
-      total: res.data.total
+      list: res.data?.list ?? [],
+      total: res.data?.total ?? 0
     }
   },
   fetchDelApi: async () => {
@@ -83,11 +43,11 @@ const columns: TableColumn[] = [
     label: '学号'
   },
   {
-    field: 'name',
+    field: 'student.name',
     label: '姓名'
   },
   {
-    field: 'college',
+    field: 'student.college',
     label: '学院'
   },
   {

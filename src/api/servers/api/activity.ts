@@ -102,3 +102,16 @@ export async function updateActivity(
     ...(options || {})
   })
 }
+
+/** 获取活动AI评价 GET /activity/ai-review/${param0} */
+export async function getActivityAiReview(
+  params: API.getActivityParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params
+  return request<API.ActivityAiReviewVO>(`/activity/activityAiReview/info/${param0}`, {
+    method: 'GET',
+    params: { ...queryParams },
+    ...(options || {})
+  })
+}
