@@ -8,10 +8,10 @@ import { useTable } from '@/hooks/web/useTable'
 import { FormSchema } from '@/components/Form'
 import { useEmitt } from '@/hooks/event/useEmitt'
 import { useRouter } from 'vue-router'
-import { activityStatus, activityStatusOptions } from '@/constants/activity'
+import { activityStatus, activityStatusOptions, myStatusOptions } from '@/constants/activity'
 import { ElTag, ElProgress, ElMessageBox, ElMessage } from 'element-plus'
 import { getActivitys, deleteActivity } from '@/api/servers/api/activity'
-
+import { getActivityCategorys } from '@/api/servers/api/activityCategory'
 const { push } = useRouter()
 
 const { tableRegister, tableMethods, tableState } = useTable({
@@ -214,11 +214,29 @@ const searchSchema = reactive<FormSchema[]>([
     }
   },
   {
-    field: 'category',
+    field: 'categoryId',
     label: '分类',
-    component: 'Input',
-    colProps: {
-      span: 8
+    component: 'Select',
+    componentProps: {
+      class: 'activity-form-item',
+      placeholder: '请选择活动分类',
+      clearable: true
+    },
+    optionApi: async () => {
+      try {
+        const { data } = await getActivityCategorys({
+          current: 1,
+          pageSize: 20,
+          param: {}
+        })
+        return (data?.list ?? []).map((item) => ({
+          label: item.name,
+          value: item.categoryId
+        }))
+      } catch (error) {
+        console.error('获取活动分类失败:', error)
+        return []
+      }
     }
   },
   {
@@ -229,7 +247,8 @@ const searchSchema = reactive<FormSchema[]>([
       span: 8
     },
     componentProps: {
-      options: activityStatusOptions
+      options: myStatusOptions,
+      placeholder: '请选择活动状态'
     }
   },
   {
@@ -252,10 +271,9 @@ const searchSchema = reactive<FormSchema[]>([
 //查询参数
 const searchParams = ref({})
 const setSearchParams = (params: any) => {
-  searchParams.value = params
-  currentPage.value = 1
-  getList()
+  ;(searchParams.value = params), (currentPage.value = 1), getList()
 }
+
 const ids = ref<string[]>([])
 
 //增删改查按钮
