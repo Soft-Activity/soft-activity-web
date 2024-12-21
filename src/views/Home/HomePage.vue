@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import PanelGroup from './components/PanelGroup.vue'
 import { ElRow, ElCol, ElCard, ElSkeleton } from 'element-plus'
-import { reactive, ref } from 'vue'
+import { reactive, ref, unref, onMounted } from 'vue'
 import { Echart } from '@/components/Echart'
-import { EChartsOption } from 'echarts'
+import type { EChartsOption } from 'echarts/types/dist/echarts'
+import { getActivityCategoryStatistics } from '@/api/servers/api/activityCategory'
+import { ECOption } from '@/components/Echart'
+import { getActivityRecentMonthStatistics, getActivitys } from '@/api/servers/api/activity'
 
 const loading = ref(false)
 
 // 活动参与情况饼图
-const pieOptions: EChartsOption = {
+const pieOptions = ref<ECOption>({
   title: {
     text: '本周活动参与情况统计',
     left: 'center',
@@ -24,7 +27,7 @@ const pieOptions: EChartsOption = {
   legend: {
     orient: 'vertical',
     left: 'left',
-    data: ['学术讲座', '文体活动', '志愿服务', '社会实践']
+    data: []
   },
   series: [
     {
@@ -52,20 +55,51 @@ const pieOptions: EChartsOption = {
       labelLine: {
         show: false
       },
-      data: [
-        { value: 328, name: '学术讲座', itemStyle: { color: '#1890FF' } },
-        { value: 562, name: '文体活动', itemStyle: { color: '#FF4B2B' } },
-        { value: 246, name: '志愿服务', itemStyle: { color: '#52C41A' } },
-        { value: 183, name: '社会实践', itemStyle: { color: '#722ED1' } }
-      ]
+      data: []
     }
   ]
+})
+
+// 定义颜色数组
+const colors = [
+  '#1890FF', // 蓝色
+  '#FF4B2B', // 红色
+  '#52C41A', // 绿色
+  '#722ED1', // 紫色
+  '#FAAD14', // 黄色
+  '#13C2C2' // 青色
+]
+
+const fetchPieOptions = async () => {
+  loading.value = true
+  try {
+    const states = await getActivityCategoryStatistics({
+      param: {
+        activityStartTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        activityEndTime: new Date(Date.now()).toISOString()
+      }
+    })
+    if (states.data) {
+      // 使用 value 访问 ref 的值
+      // @ts-ignore
+      pieOptions.value.legend!.data = states.data?.map((item) => item.name) || []
+      pieOptions.value.series![0].data = states.data.map((item, index) => ({
+        value: item.totalParticipants || 0,
+        name: item.name,
+        itemStyle: {
+          color: colors[index % colors.length]
+        }
+      }))
+    }
+  } catch (error) {
+    console.error('获取数据失败:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
-const pieOptionsData = reactive<EChartsOption>(pieOptions) as EChartsOption
-
 // 热门活动统计柱状图
-const barOptions: EChartsOption = {
+const barOptions = ref<ECOption>({
   title: {
     text: '本周热门活动参与人数TOP10',
     left: 'center',
@@ -130,14 +164,31 @@ const barOptions: EChartsOption = {
       }
     }
   ]
+})
+
+const fetchBarOptions = async () => {
+  const res = await getActivitys({
+    current: 1,
+    pageSize: 10,
+    param: {
+      startTime: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+      endTime: new Date(Date.now()).toISOString(),
+      // @ts-ignore
+      'sorter.column': 'capacity',
+      'sorter.mode': 'desc'
+    }
+  })
+
+  const states = res?.data?.list || []
+  console.log(states)
+  // @ts-ignore
+  barOptions.value.xAxis!.data = states.map((item) => item.name)
+  barOptions.value.series![0].data = states.map((item) => item.capacity)
 }
-
-const barOptionsData = reactive<EChartsOption>(barOptions) as EChartsOption
-
 // 活动趋势折线图
-const lineOptions: EChartsOption = {
+const lineOptions = ref<ECOption>({
   title: {
-    text: '近一年活动开展趋势',
+    text: '近一月活动开展趋势',
     left: 'center',
     textStyle: {
       fontSize: 16,
@@ -195,9 +246,23 @@ const lineOptions: EChartsOption = {
       }
     }
   ]
-}
+})
 
-const lineOptionsData = reactive<EChartsOption>(lineOptions) as EChartsOption
+const fetchLineOptions = async () => {
+  const res = await getActivityRecentMonthStatistics()
+  const states = res?.data || []
+
+  // @ts-ignore
+  lineOptions.value.xAxis!.data = states.map((item) => item.date)
+  lineOptions.value.series![0].data = states.map((item) => item.activityCount)
+  lineOptions.value.series![1].data = states.map((item) => item.totalParticipants)
+}
+// 在组件挂载时获取数据
+onMounted(() => {
+  fetchPieOptions()
+  fetchBarOptions()
+  fetchLineOptions()
+})
 </script>
 
 <template>
@@ -206,21 +271,21 @@ const lineOptionsData = reactive<EChartsOption>(lineOptions) as EChartsOption
     <ElCol :xl="10" :lg="10" :md="24" :sm="24" :xs="24">
       <ElCard shadow="hover" class="mb-20px chart-card">
         <ElSkeleton :loading="loading" animated>
-          <Echart :options="pieOptionsData" :height="350" />
+          <Echart :options="pieOptions" :height="350" />
         </ElSkeleton>
       </ElCard>
     </ElCol>
     <ElCol :xl="14" :lg="14" :md="24" :sm="24" :xs="24">
       <ElCard shadow="hover" class="mb-20px chart-card">
         <ElSkeleton :loading="loading" animated>
-          <Echart :options="barOptionsData" :height="350" />
+          <Echart :options="barOptions" :height="350" />
         </ElSkeleton>
       </ElCard>
     </ElCol>
     <ElCol :span="24">
       <ElCard shadow="hover" class="mb-20px chart-card">
         <ElSkeleton :loading="loading" animated :rows="4">
-          <Echart :options="lineOptionsData" :height="400" />
+          <Echart :options="lineOptions" :height="400" />
         </ElSkeleton>
       </ElCard>
     </ElCol>

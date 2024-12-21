@@ -1,43 +1,47 @@
 <script setup lang="ts">
 import { ElRow, ElCol, ElCard, ElSkeleton } from 'element-plus'
 import { useDesign } from '@/hooks/web/useDesign'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { getActivityCategoryStatistics } from '@/api/servers/api/activityCategory'
 
 const { getPrefixCls } = useDesign()
 
 const prefixCls = getPrefixCls('panel')
 
 const loading = ref(false)
-const activityStats = ref([
-  {
-    type: '学术讲座',
-    title: '学术活动',
-    count: 15,
-    participants: 328,
-    color: '#1890FF'
-  },
-  {
-    type: '文体活动',
-    title: '文体活动',
-    count: 8,
-    participants: 562,
-    color: '#FF4B2B'
-  },
-  {
-    type: '志愿服务',
-    title: '志愿服务',
-    count: 12,
-    participants: 246,
-    color: '#52C41A'
-  },
-  {
-    type: '社会实践',
-    title: '实践活动',
-    count: 6,
-    participants: 183,
-    color: '#722ED1'
+interface ActivityCategoryStatVO extends API.ActivityCategoryStatVO {
+  color: string
+}
+const activityStats = ref<ActivityCategoryStatVO[]>()
+
+// 定义颜色数组
+const colors = [
+  '#1890FF', // 蓝色
+  '#52C41A', // 绿色
+  '#FAAD14', // 黄色
+  '#F5222D', // 红色
+  '#722ED1', // 紫色
+  '#13C2C2' // 青色
+]
+
+const fetchActivityStats = async () => {
+  loading.value = true
+  try {
+    const res = await getActivityCategoryStatistics({ param: {} })
+    activityStats.value = res.data.map((stat, index) => ({
+      ...stat,
+      color: colors[index % colors.length] // 循环使用颜色数组
+    }))
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false
   }
-])
+}
+
+onMounted(() => {
+  fetchActivityStats()
+})
 </script>
 
 <template>
@@ -58,34 +62,34 @@ const activityStats = ref([
               <div class="flex-1">
                 <div class="flex items-center justify-between mb-15px">
                   <div :class="`${prefixCls}__item--title text-20px font-bold text-white`">
-                    {{ stat.title }}
+                    {{ stat.name }}
                   </div>
                 </div>
                 <div :class="`${prefixCls}__item--stats`">
                   <div class="stat-row">
                     <div class="stat-label">进行中活动</div>
-                    <div class="stat-value">{{ stat.count }}个</div>
+                    <div class="stat-value">{{ stat.ongoing }}个</div>
                   </div>
                   <div class="stat-row">
                     <div class="stat-label">累计参与人数</div>
-                    <div class="stat-value">{{ stat.participants }}人</div>
+                    <div class="stat-value">{{ stat.totalParticipants }}人</div>
                   </div>
                 </div>
-                <div class="activity-type">{{ stat.type }}</div>
+                <div class="activity-type">{{ stat.name }}</div>
               </div>
             </div>
           </template>
         </ElSkeleton>
       </ElCard>
     </ElCol>
-    <ElCol :xl="4" :lg="4" :md="12" :sm="12" :xs="24">
+    <!-- <ElCol :xl="4" :lg="4" :md="12" :sm="12" :xs="24">
       <ElCard class="mb-20px hover:cursor-pointer hover:shadow-lg transition-all duration-300">
         <div :class="`${prefixCls}__item flex flex-col justify-center items-center h-full`">
           <Icon icon="carbon:add" :size="40" class="text-gray-400 mb-10px" />
           <div class="text-16px text-gray-500">新增类型</div>
         </div>
       </ElCard>
-    </ElCol>
+    </ElCol> -->
   </ElRow>
 </template>
 

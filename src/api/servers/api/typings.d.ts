@@ -123,6 +123,12 @@ declare namespace API {
     name?: string
     /** 描述 */
     description?: string
+    /** 活动状态 */
+    activityStatus?: number
+    /** 活动开始时间 */
+    activityStartTime?: string
+    /** 活动结束时间 */
+    activityEndTime?: string
   }
 
   type ActivityCategoryStatVO = {
@@ -194,23 +200,16 @@ declare namespace API {
     studentId?: string
     /** 参与学生是否评论 */
     isStudentComment?: boolean
+    sorter?: Sorter
   }
 
-  // 首先定义 AI 分析的接口类型
-  interface AiAnalysis {
-    /** AI 分析总结 */
-    summary: string
-    /** 关键词列表 */
-    keywords: string[]
-    /** 情感分析 */
-    sentiment: {
-      /** 正面评价占比 */
-      positive: number
-      /** 中性评价占比 */
-      neutral: number
-      /** 负面评价占比 */
-      negative: number
-    }
+  type ActivityRecentMonthStatVO = {
+    /** 日期 */
+    date?: string
+    /** 活动数量 */
+    activityCount?: number
+    /** 参与人数 */
+    totalParticipants?: number
   }
 
   type ActivityVO = {
@@ -248,8 +247,6 @@ declare namespace API {
     recentComments?: CommentVO[]
     /** 评论总数 */
     commentCount?: number
-    /** AI 分析结果 */
-    aiAnalysis?: AiAnalysis
   }
 
   type aiParams = {
@@ -306,6 +303,10 @@ declare namespace API {
     /** 活动名称 */
     activityName?: string
     student?: UserVO
+    /** 学院 */
+    collegeName?: string
+    /** 学号 */
+    schoolId?: string
   }
 
   type deleteAccountParams = {
@@ -639,10 +640,6 @@ declare namespace API {
     registrationId?: number
     /** 学生学号 */
     studentId?: string
-    /**学生名字 */
-    userName?: string
-    /** 学生学院 */
-    collegeName?: string
     /** 活动id */
     activityId?: number
     /** 报名状态 0 已报名 1 已取消 */
@@ -675,6 +672,12 @@ declare namespace API {
     status?: number
     /** 报名时间 */
     createTime?: string
+    /** 用户名 */
+    userName?: string
+    /** 学院名称 */
+    collegeName?: string
+    /** 学号 */
+    schoolId?: string
   }
 
   type Role = {
@@ -714,6 +717,15 @@ declare namespace API {
     permissions?: string[]
   }
 
+  type Sorter = {
+    /** 排序字段 */
+    column?: string
+    /** 排序方式 asc/desc */
+    mode?: string
+    /** 是否自定义字段 */
+    customField?: boolean
+  }
+
   type Student = {
     /** 学生学号 */
     studentId?: string
@@ -729,7 +741,7 @@ declare namespace API {
     type?: string
     /** 性别 男/女 */
     gender?: string
-    /** 是否已认证0为认��，1已认证 */
+    /** 是否已认证0为认证，1已认证 */
     isVerified?: boolean
   }
 

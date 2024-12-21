@@ -39,7 +39,7 @@ getList()
 //表单列表设置
 const columns: TableColumn[] = [
   {
-    field: 'studentId',
+    field: 'student.studentId',
     label: '学号'
   },
   {
