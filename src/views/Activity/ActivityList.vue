@@ -8,10 +8,12 @@ import { useTable } from '@/hooks/web/useTable'
 import { FormSchema } from '@/components/Form'
 import { useEmitt } from '@/hooks/event/useEmitt'
 import { useRouter } from 'vue-router'
-import { activityStatus, activityStatusOptions, myStatusOptions } from '@/constants/activity'
-import { ElTag, ElProgress, ElMessageBox, ElMessage } from 'element-plus'
+import { mapStatus, myStatusOptions } from '@/constants/activity'
+import { ElTag, ElProgress, ElMessageBox, ElMessage, dayjs } from 'element-plus'
 import { getActivitys, deleteActivity } from '@/api/servers/api/activity'
 import { getActivityCategorys } from '@/api/servers/api/activityCategory'
+import { number } from 'vue-types'
+import { formatFromDateTime } from '@/utils/dateUtil'
 const { push } = useRouter()
 
 const { tableRegister, tableMethods, tableState } = useTable({
@@ -23,27 +25,27 @@ const { tableRegister, tableMethods, tableState } = useTable({
       param: unref(searchParams)
     })
 
-    // 将API返回的数据结构映射到前端展示需要的结构
-    const mappedList = (res.data.list ?? []).map((item) => ({
-      id: item.activityId,
-      name: item.name,
-      organizer: item.organizerName,
-      category: item.categoryName,
-      location: item.location,
-      description: item.description,
-      status: mapStatus(Number(item.status) || 0), // 确保status是number类型
-      startTime: item.startTime,
-      endTime: item.endTime,
-      maxCapacity: Number(item.maxCapacity), // 确保maxCapacity是number类型
-      capacity: Number(item.capacity), // 确保capacity是number类型
-      createTime: item.createTime,
-      avgRating: Number(item.avgRating), // 确保avgRating是number类型
-      commentCount: Number(item.commentCount), // 确保commentCount是number类型
-      recentComments: item.recentComments
-    }))
+    // // 将API返回的数据结构映射到前端展示需要的结构
+    // const mappedList = (res.data.list ?? []).map((item) => ({
+    //   id: item.activityId,
+    //   name: item.name,
+    //   organizer: item.organizerName,
+    //   category: item.categoryName,
+    //   location: item.location,
+    //   description: item.description,
+    //   status: mapStatus(Number(item.status) || 0), // 确保status是number类型
+    //   startTime: item.startTime,
+    //   endTime: item.endTime,
+    //   maxCapacity: Number(item.maxCapacity), // 确保maxCapacity是number类型
+    //   capacity: Number(item.capacity), // 确保capacity是number类型
+    //   createTime: item.createTime,
+    //   avgRating: Number(item.avgRating), // 确保avgRating是number类型
+    //   commentCount: Number(item.commentCount), // 确保commentCount是number类型
+    //   recentComments: item.recentComments
+    // }))
 
     return {
-      list: mappedList,
+      list: res.data.list ?? [],
       total: res.data.total
     }
   },
@@ -85,7 +87,7 @@ const columns: TableColumn[] = [
     }
   },
   {
-    field: 'organizer',
+    field: 'organizerName',
     label: '组织者',
     width: 100
   },
@@ -95,7 +97,7 @@ const columns: TableColumn[] = [
     width: 100,
     slots: {
       default: (data) => {
-        return <ElTag size="small">{data.row.category}</ElTag>
+        return <ElTag size="small">{data.row.categoryName}</ElTag>
       }
     }
   },
@@ -117,14 +119,14 @@ const columns: TableColumn[] = [
     slots: {
       default: (data) => {
         const statusMap = {
-          NOT_START: 'info',
-          PROCEED: 'success',
-          FINISHED: 'warning',
-          CANCELLED: 'danger'
+          0: 'info',
+          1: 'success',
+          2: 'warning',
+          3: 'danger'
         }
         return (
           <ElTag type={statusMap[data.row.status]} effect="light">
-            {activityStatus[data.row.status]}
+            {mapStatus[data.row.status]}
           </ElTag>
         )
       }
@@ -139,7 +141,7 @@ const columns: TableColumn[] = [
         return (
           <div class="text-gray-600">
             <i class="el-icon-time mr-1"></i>
-            {data.row.startTime} 至 {data.row.endTime}
+            {formatFromDateTime(data.row.startTime, data.row.endTime)}
           </div>
         )
       }
@@ -186,7 +188,7 @@ const columns: TableColumn[] = [
               修改
             </BaseButton>
             <BaseButton type="danger" onClick={() => delData(data.row)}>
-              取消
+              删除
             </BaseButton>
           </div>
         )
@@ -252,9 +254,26 @@ const searchSchema = reactive<FormSchema[]>([
     }
   },
   {
+    field: 'isCheckIn',
+    label: '需要签到',
+    component: 'Switch',
+    colProps: {
+      span: 8
+    },
+    componentProps: {
+      activeText: '是',
+      inactiveText: '否'
+    }
+  },
+  {
     field: 'startTime',
     label: '活动开始时间',
     component: 'DatePicker',
+    componentProps: {
+      type: 'datetime',
+      format: 'YYYY-MM-DD HH:mm:ss',
+      valueFormat: 'YYYY-MM-DD HH:mm:ss'
+    },
     colProps: {
       span: 8
     }
@@ -265,6 +284,11 @@ const searchSchema = reactive<FormSchema[]>([
     component: 'DatePicker',
     colProps: {
       span: 8
+    },
+    componentProps: {
+      type: 'datetime',
+      format: 'YYYY-MM-DD HH:mm:ss',
+      valueFormat: 'YYYY-MM-DD HH:mm:ss'
     }
   }
 ])
@@ -274,33 +298,28 @@ const setSearchParams = (params: any) => {
   ;(searchParams.value = params), (currentPage.value = 1), getList()
 }
 
-const ids = ref<string[]>([])
-
 //增删改查按钮
 const AddAction = () => {
   push('/activity/add')
 }
 const delLoading = ref(false)
-const delData = async (row: any | null) => {
+const delData = async (row: API.ActivityVO | null) => {
   try {
-    await ElMessageBox.confirm('确认要取消该活动吗？', '提示', {
+    await ElMessageBox.confirm('确认要删除该活动吗？', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
     })
 
-    const elTableExpose = await getElTableExpose()
-    ids.value = row ? [row.id] : elTableExpose?.getSelectionRows().map((v: any) => v.id) || []
-    delLoading.value = true
-
-    const res = await deleteActivity({ id: unref(ids)[0] })
-
-    if (res.status === 200) {
-      ElMessage.success('活动取消成功')
-      await getList()
-    } else {
-      ElMessage.error(res.message || '操作失败')
+    if (!row?.activityId) {
+      ElMessage.error('请选择要删除的活动')
+      return
     }
+
+    await deleteActivity({ id: Number(row.activityId) })
+
+    ElMessage.success('活动删除成功')
+    await getList()
   } catch (error) {
     console.error('删除失败:', error)
     ElMessage.error('操作失败')
@@ -312,20 +331,9 @@ const action = (row: any, type: 'edit' | 'detail') => {
   push({
     path: `/activity/${type}`,
     query: {
-      id: row.id
+      id: row.activityId
     }
   })
-}
-
-// 添加状态映射函数
-const mapStatus = (status: number): string => {
-  const statusMap = {
-    0: 'NOT_START',
-    1: 'PROCEED',
-    2: 'FINISHED',
-    3: 'CANCELLED'
-  }
-  return statusMap[status] || 'NOT_START'
 }
 </script>
 

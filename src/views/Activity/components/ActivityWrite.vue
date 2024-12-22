@@ -6,24 +6,25 @@ import { useForm } from '@/hooks/web/useForm'
 import { FormItemRule } from 'element-plus'
 import { getActivityCategorys } from '@/api/servers/api/activityCategory'
 import { getUsers } from '@/api/servers/api/user'
+import { getActivityLocations } from '@/api/servers/api/activityLocation'
+import { mapStatus } from '@/constants/activity'
 
 const { required } = useValidator()
 
 const props = defineProps({
   currentRow: {
-    type: Object as PropType<Nullable<any>>,
+    type: Object as PropType<Nullable<API.ActivityVO>>,
     default: () => null
   }
 })
-
 const { formRegister, formMethods } = useForm()
-const { setValues, getFormData, getElFormExpose, setSchema } = formMethods
+const { setValues, getFormData, getElFormExpose, setSchema, addSchema, delSchema } = formMethods
 
 // 模拟用户搜索
 const querySearchAsync = async (queryString: string, cb: (arg: any) => void) => {
   const { data } = await getUsers({
     current: 1,
-    pageSize: 50,
+    pageSize: 10000,
     param: {}
   })
   const mockUsers = data.list ?? []
@@ -148,10 +149,10 @@ const schema = reactive<FormSchema[]>([
     },
     optionApi: () => {
       return [
-        { label: '未开始', value: '0' },
-        { label: '进行中', value: '1' },
-        { label: '已结束', value: '2' },
-        { label: '已取消', value: '3' }
+        { label: '未开始', value: 0 },
+        { label: '进行中', value: 1 },
+        { label: '已结束', value: 2 },
+        { label: '已取消', value: 3 }
       ]
     }
   },
@@ -223,8 +224,110 @@ const schema = reactive<FormSchema[]>([
     colProps: {
       span: 24
     }
+  },
+  {
+    field: 'isCheckIn',
+    label: '是否需要打卡',
+    component: 'Switch',
+    value: false,
+    componentProps: {
+      class: 'activity-form-item',
+      onChange: (val: boolean) => {
+        console.log('val', val)
+        if (val) {
+          console.log('checkInSchema', checkInSchema)
+          checkInSchema.forEach(async (item) => {
+            await addSchema(item)
+          })
+        } else {
+          checkInSchema.forEach(async (item) => {
+            await formMethods.delSchema(item.field)
+          })
+          setValues({
+            checkInLocationId: undefined,
+            checkInRadius: undefined,
+            checkInStartTime: undefined,
+            checkInEndTime: undefined
+          })
+        }
+      }
+    }
   }
 ])
+const checkInSchema: FormSchema[] = [
+  {
+    field: 'checkInLocationId',
+    label: '打卡地点',
+    component: 'Select',
+    formItemProps: {
+      rules: [{ required: true, message: '请选择打卡地点', trigger: 'change' }]
+    },
+    componentProps: {
+      class: 'activity-form-item',
+      placeholder: '请选择打卡地点',
+      clearable: true
+    },
+    optionApi: async () => {
+      try {
+        const { data } = await getActivityLocations({
+          current: 1,
+          pageSize: 10000,
+          param: {}
+        })
+        return (data?.list ?? []).map((item) => ({
+          label: item.name,
+          value: item.locationId
+        }))
+      } catch (error) {
+        console.error('获取地点列表失败:', error)
+        return []
+      }
+    }
+  },
+  {
+    field: 'checkInRadius',
+    label: '打卡范围(米)',
+    component: 'InputNumber',
+    value: 100,
+    formItemProps: {
+      rules: [{ required: true, message: '请输入打卡范围', trigger: 'blur' }]
+    },
+    componentProps: {
+      class: 'activity-form-item',
+      min: 10,
+      max: 1000,
+      step: 10,
+      placeholder: '请输入打卡范围(米)',
+      controls: true
+    }
+  },
+  {
+    field: 'checkInTime',
+    label: '打卡时间',
+    component: 'DatePicker',
+    formItemProps: {
+      rules: [{ required: true, message: '请选择打卡时间', trigger: 'change' }]
+    },
+    componentProps: {
+      class: 'activity-form-item',
+      type: 'datetimerange',
+      startPlaceholder: '打卡开始时间',
+      endPlaceholder: '打卡结束时间',
+      format: 'YYYY-MM-DD HH:mm:ss',
+      valueFormat: 'YYYY-MM-DD HH:mm:ss',
+      clearable: true,
+      onChange: (dates: [string, string] | null) => {
+        if (dates) {
+          setValues({
+            checkInStartTime: dates[0],
+            checkInEndTime: dates[1],
+            checkInTime: dates
+          })
+        }
+      }
+    }
+  }
+]
 
 const rules = reactive<Record<string, FormItemRule[]>>({
   name: [
@@ -256,15 +359,35 @@ const submit = async () => {
     return formData
   } else {
     console.log('error')
+    throw new Error('表单验证失败')
   }
 }
 
 watch(
   () => props.currentRow,
-  (currentRow) => {
+  async (currentRow) => {
     if (!currentRow) return
     setValues(currentRow)
-    setSchema([])
+    if (currentRow.isCheckIn) {
+      checkInSchema.forEach(async (item) => {
+        await addSchema(item)
+      })
+    }
+    if (currentRow.startTime && currentRow.endTime) {
+      setValues({
+        activityTime: [currentRow.startTime, currentRow.endTime]
+      })
+    }
+    if (
+      currentRow.checkInLocationId &&
+      currentRow.checkInRadius &&
+      currentRow.checkInStartTime &&
+      currentRow.checkInEndTime
+    ) {
+      setValues({
+        checkInTime: [currentRow.checkInStartTime, currentRow.checkInEndTime]
+      })
+    }
   },
   {
     deep: true,

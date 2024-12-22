@@ -34,7 +34,8 @@ export default defineComponent({
     data: {
       type: Object as PropType<any>,
       default: () => ({})
-    }
+    },
+    show: propTypes.bool.def(true)
   },
   setup(props, { slots, attrs }) {
     const getBindValue = computed((): any => {
@@ -63,7 +64,7 @@ export default defineComponent({
     }
 
     // 折叠
-    const show = ref(true)
+    const show = ref(props.show)
 
     const toggleClick = () => {
       if (props.collapse) {
@@ -107,19 +108,22 @@ export default defineComponent({
                 {{
                   extra: () => (slots['extra'] ? slots['extra']() : props.extra),
                   default: () => {
-                    return props.schema.map((item) => {
-                      return (
-                        <ElDescriptionsItem key={item.field} {...getBindItemValue(item)}>
-                          {{
-                            label: () => (item.slots?.label ? item.slots?.label(item) : item.label),
-                            default: () =>
-                              item.slots?.default
-                                ? item.slots?.default(props.data)
-                                : get(props.data, item.field)
-                          }}
-                        </ElDescriptionsItem>
-                      )
-                    })
+                    return props.schema
+                      .filter((item) => !item.hidden)
+                      .map((item) => {
+                        return (
+                          <ElDescriptionsItem key={item.field} {...getBindItemValue(item)}>
+                            {{
+                              label: () =>
+                                item.slots?.label ? item.slots?.label(item) : item.label,
+                              default: () =>
+                                item.slots?.default
+                                  ? item.slots?.default(props.data)
+                                  : get(props.data, item.field)
+                            }}
+                          </ElDescriptionsItem>
+                        )
+                      })
                   }
                 }}
               </ElDescriptions>

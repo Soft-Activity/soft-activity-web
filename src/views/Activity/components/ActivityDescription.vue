@@ -1,11 +1,13 @@
 <script setup lang="tsx">
 import { useDesign } from '@/hooks/web/useDesign'
-import { PropType, reactive } from 'vue'
+import { computed, PropType, reactive, watch } from 'vue'
 import { Descriptions, DescriptionsSchema } from '@/components/Descriptions'
-import { activityStatus } from '@/constants/activity'
+import { activityStatus, mapStatus } from '@/constants/activity'
 import { ContentWrap } from '@/components/ContentWrap'
+import dayjs from 'dayjs'
+import { formatFromDateTime, formatToDateTime } from '@/utils/dateUtil'
 
-defineProps({
+const props = defineProps({
   currentRow: {
     type: Object as PropType<any>,
     default: () => null
@@ -13,6 +15,9 @@ defineProps({
 })
 const { getPrefixCls } = useDesign()
 const prefixCls = getPrefixCls('activity')
+const formatTime = (time: string) => {
+  return dayjs(time).format('YYYY年MM月DD日 HH时mm分ss秒')
+}
 
 const schema = reactive<DescriptionsSchema[]>([
   {
@@ -20,12 +25,12 @@ const schema = reactive<DescriptionsSchema[]>([
     label: '活动名称'
   },
   {
-    field: 'organizer',
+    field: 'organizerName',
     label: '组织者',
     width: 350
   },
   {
-    field: 'category',
+    field: 'categoryName',
     label: '分类',
     width: 350
   },
@@ -36,7 +41,12 @@ const schema = reactive<DescriptionsSchema[]>([
   },
   {
     field: 'status',
-    label: '活动状态'
+    label: '活动状态',
+    slots: {
+      default: (data) => {
+        return <div>{mapStatus[data.status]}</div>
+      }
+    }
   },
   {
     field: 'activityTime',
@@ -45,8 +55,8 @@ const schema = reactive<DescriptionsSchema[]>([
     slots: {
       default: (data) => {
         return (
-          <div>
-            {data.startTime} - {data.endTime}
+          <div style={{ fontSize: '14px', lineHeight: '20px', textAlign: 'center' }}>
+            {formatFromDateTime(data.startTime, data.endTime)}
           </div>
         )
       }
@@ -68,7 +78,12 @@ const schema = reactive<DescriptionsSchema[]>([
   {
     field: 'createTime',
     label: '创建时间',
-    span: 24
+    span: 24,
+    slots: {
+      default: (data) => {
+        return <div>{formatToDateTime(data.createTime)}</div>
+      }
+    }
   },
   {
     field: 'description',
@@ -82,7 +97,80 @@ const schema = reactive<DescriptionsSchema[]>([
     }
   }
 ])
-
+const checkInSchema = reactive<DescriptionsSchema[]>([
+  {
+    field: 'isCheckIn',
+    label: '是否需要打卡',
+    slots: {
+      default: (data) => {
+        return <div>{data.isCheckIn ? '是' : '否'}</div>
+      }
+    }
+  },
+  {
+    field: 'checkInLocationName',
+    label: '打卡地点',
+    width: 350,
+    slots: {
+      default: (data) => {
+        return <div>{data.checkInLocationName}</div>
+      }
+    }
+  },
+  {
+    field: 'checkInRadius',
+    label: '打卡范围',
+    width: 350,
+    slots: {
+      default: (data) => {
+        return <div>{data.checkInRadius}米</div>
+      }
+    }
+  },
+  {
+    field: 'checkTime',
+    label: '打卡时间',
+    width: 350,
+    slots: {
+      default: (data) => {
+        return (
+          <div style={{ fontSize: '14px', lineHeight: '20px', textAlign: 'center' }}>
+            {formatFromDateTime(data.checkInStartTime, data.checkInEndTime)}
+          </div>
+        )
+      }
+    }
+  },
+  {
+    field: 'currentCheckInCapacity',
+    label: '打卡情况',
+    slots: {
+      default: (data) => {
+        return (
+          <div>
+            {data.checkInCount}/{data.maxCapacity}
+          </div>
+        )
+      }
+    }
+  }
+])
+watch(
+  () => props.currentRow,
+  async (currentRow) => {
+    if (!currentRow) return
+    console.log('currentRow', currentRow)
+    if (currentRow.isCheckIn) {
+      checkInSchema.forEach(async (item) => {
+        schema.push(item)
+      })
+    }
+  },
+  {
+    deep: true,
+    immediate: true
+  }
+)
 // 添加默认导出
 defineOptions({
   name: 'ActivityDescription'

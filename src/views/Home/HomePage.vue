@@ -7,6 +7,7 @@ import type { EChartsOption } from 'echarts/types/dist/echarts'
 import { getActivityCategoryStatistics } from '@/api/servers/api/activityCategory'
 import { ECOption } from '@/components/Echart'
 import { getActivityRecentMonthStatistics, getActivitys } from '@/api/servers/api/activity'
+import { formatToDateTime } from '@/utils/dateUtil'
 
 const loading = ref(false)
 
@@ -75,8 +76,8 @@ const fetchPieOptions = async () => {
   try {
     const states = await getActivityCategoryStatistics({
       param: {
-        activityStartTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        activityEndTime: new Date(Date.now()).toISOString()
+        activityStartTime: formatToDateTime(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+        activityEndTime: formatToDateTime(new Date(Date.now()))
       }
     })
     if (states.data) {
@@ -171,8 +172,9 @@ const fetchBarOptions = async () => {
     current: 1,
     pageSize: 10,
     param: {
-      startTime: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
-      endTime: new Date(Date.now()).toISOString(),
+      //
+      startTime: formatToDateTime(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+      endTime: formatToDateTime(new Date(Date.now())),
       // @ts-ignore
       'sorter.column': 'capacity',
       'sorter.mode': 'desc'

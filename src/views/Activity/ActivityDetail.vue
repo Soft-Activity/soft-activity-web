@@ -10,19 +10,7 @@ import { getActivity } from '@/api/servers/api/activity'
 import { getActivityAiReview } from '@/api/servers/api/activityAiReview'
 import { ElMessage } from 'element-plus'
 
-interface ActivityDetail {
-  id: number
-  name: string
-  organizer: string
-  category: string
-  location: string
-  description: string
-  status: string
-  startTime: string
-  endTime: string
-  maxCapacity: number
-  capacity: number
-  createTime: string
+interface ActivityDetail extends API.ActivityVO {
   aiAnalysis?: {
     aiAnalysis?: string
     averageScore?: number
@@ -54,22 +42,29 @@ const getTableDet = async () => {
         id: Number(query.id) || 0
       })
     ])
-
+    console.log('activityRes', activityRes)
+    console.log('aiAnalysisRes', aiAnalysisRes)
+    // if (activityRes.status === 'fulfilled' && activityRes.value?.data) {
+    //   const activityData = activityRes.value.data
+    //   currentRow.value = {
+    //     id: activityData.activityId || 1,
+    //     name: activityData.name || 'testActivity',
+    //     organizer: activityData.organizerName || 'test',
+    //     category: activityData.categoryName || 'testCategory',
+    //     location: activityData.location || 'testLocation',
+    //     description: activityData.description || 'testDescription',
+    //     status: statusMap[Number(activityData.status) ?? 0] || '未开始',
+    //     startTime: activityData.startTime || '2024-03-15 19:00:00',
+    //     endTime: activityData.endTime || '2024-03-15 22:00:00',
+    //     maxCapacity: activityData.maxCapacity || 200,
+    //     capacity: activityData.capacity || 0,
+    //     createTime: activityData.createTime || '2024-03-15 22:00:00',
+    //     aiAnalysis: aiAnalysisRes.status === 'fulfilled' ? aiAnalysisRes.value?.data || null : null
+    //   }
+    // }
     if (activityRes.status === 'fulfilled' && activityRes.value?.data) {
-      const activityData = activityRes.value.data
       currentRow.value = {
-        id: activityData.activityId || 1,
-        name: activityData.name || 'testActivity',
-        organizer: activityData.organizerName || 'test',
-        category: activityData.categoryName || 'testCategory',
-        location: activityData.location || 'testLocation',
-        description: activityData.description || 'testDescription',
-        status: statusMap[Number(activityData.status) ?? 0] || '未开始',
-        startTime: activityData.startTime || '2024-03-15 19:00:00',
-        endTime: activityData.endTime || '2024-03-15 22:00:00',
-        maxCapacity: activityData.maxCapacity || 200,
-        capacity: activityData.capacity || 0,
-        createTime: activityData.createTime || '2024-03-15 22:00:00',
+        ...activityRes.value.data,
         aiAnalysis: aiAnalysisRes.status === 'fulfilled' ? aiAnalysisRes.value?.data || null : null
       }
     }
@@ -94,12 +89,16 @@ getTableDet()
     </template>
     <div class="detail-container">
       <ActivityDescription :currentRow="currentRow" />
+      <RegistrationTable :activityId="query.id" :isCheckIn="currentRow.isCheckIn" />
+      <CommentTable v-if="currentRow.status === 2" :activityId="query.id" />
       <AIAnalysis
-        v-if="currentRow?.aiAnalysis && Object.keys(currentRow.aiAnalysis).length > 0"
+        v-if="
+          currentRow.status === 2 &&
+          currentRow?.aiAnalysis &&
+          Object.keys(currentRow.aiAnalysis).length > 0
+        "
         :data="currentRow.aiAnalysis"
       />
-      <RegistrationTable :activityId="query.id" />
-      <CommentTable :activityId="query.id" />
     </div>
   </ContentDetailWrap>
 </template>
