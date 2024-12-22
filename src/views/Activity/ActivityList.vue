@@ -104,7 +104,7 @@ const columns: TableColumn[] = [
   {
     field: 'description',
     label: '活动描述',
-    width: 200,
+    width: 120,
     showOverflowTooltip: true
   },
   {
@@ -133,6 +133,40 @@ const columns: TableColumn[] = [
     }
   },
   {
+    field: 'isCheckIn',
+    label: '签到',
+    width: 100,
+    slots: {
+      default: (data) => {
+        return (
+          <ElTag type={data.row.isCheckIn ? 'success' : 'info'} effect="light">
+            {data.row.isCheckIn ? '是' : '否'}
+          </ElTag>
+        )
+      }
+    }
+  },
+  {
+    field: 'currentCapacity',
+    label: '报名情况',
+    width: 120,
+    slots: {
+      default: (data) => {
+        const percentage = (data.row.capacity / data.row.maxCapacity) * 100
+        return (
+          <div class="flex items-center">
+            <ElProgress
+              class="w-full"
+              percentage={percentage}
+              format={() => `${data.row.capacity}/${data.row.maxCapacity}`}
+              stroke-width={10}
+            />
+          </div>
+        )
+      }
+    }
+  },
+  {
     field: 'activityTime',
     label: '活动时间',
     width: 350,
@@ -147,25 +181,7 @@ const columns: TableColumn[] = [
       }
     }
   },
-  {
-    field: 'currentCapacity',
-    label: '报名情况',
-    width: 180,
-    slots: {
-      default: (data) => {
-        const percentage = (data.row.capacity / data.row.maxCapacity) * 100
-        return (
-          <div class="flex items-center">
-            <ElProgress
-              percentage={percentage}
-              format={() => `${data.row.capacity}/${data.row.maxCapacity}`}
-              stroke-width={10}
-            />
-          </div>
-        )
-      }
-    }
-  },
+
   {
     field: 'createTime',
     label: '创建时间',
@@ -208,7 +224,7 @@ const searchSchema = reactive<FormSchema[]>([
     }
   },
   {
-    field: 'organizer',
+    field: 'organizerName',
     label: '组织者',
     component: 'Input',
     colProps: {
@@ -255,7 +271,7 @@ const searchSchema = reactive<FormSchema[]>([
   },
   {
     field: 'isCheckIn',
-    label: '需要签到',
+    label: '是否需要签到',
     component: 'Switch',
     colProps: {
       span: 8
