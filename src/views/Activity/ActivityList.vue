@@ -9,10 +9,9 @@ import { FormSchema } from '@/components/Form'
 import { useEmitt } from '@/hooks/event/useEmitt'
 import { useRouter } from 'vue-router'
 import { mapStatus, myStatusOptions } from '@/constants/activity'
-import { ElTag, ElProgress, ElMessageBox, ElMessage, dayjs } from 'element-plus'
+import { ElTag, ElProgress, ElMessageBox, ElMessage } from 'element-plus'
 import { getActivitys, deleteActivity } from '@/api/servers/api/activity'
 import { getActivityCategorys } from '@/api/servers/api/activityCategory'
-import { number } from 'vue-types'
 import { formatFromDateTime } from '@/utils/dateUtil'
 const { push } = useRouter()
 

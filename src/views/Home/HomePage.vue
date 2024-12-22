@@ -76,8 +76,11 @@ const fetchPieOptions = async () => {
   try {
     const states = await getActivityCategoryStatistics({
       param: {
-        activityStartTime: formatToDateTime(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
-        activityEndTime: formatToDateTime(new Date(Date.now()))
+        activityStartTime: formatToDateTime(
+          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          'YYYY-MM-DD HH:mm:ss'
+        ),
+        activityEndTime: formatToDateTime(new Date(Date.now()), 'YYYY-MM-DD HH:mm:ss')
       }
     })
     if (states.data) {

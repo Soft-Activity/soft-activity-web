@@ -4,8 +4,9 @@ import { useTable } from '@/hooks/web/useTable'
 import { PropType, unref } from 'vue'
 import { ContentWrap } from '@/components/ContentWrap'
 import { BaseButton } from '@/components/Button'
-import { dayjs, ElRate } from 'element-plus'
+import { ElRate } from 'element-plus'
 import { getComments } from '@/api/servers/api/comment'
+import { formatToDateTime } from '@/utils/dateUtil'
 
 const { activityId } = defineProps({
   activityId: {
@@ -35,9 +36,6 @@ const { loading, dataList, total, currentPage, pageSize } = tableState
 const { refresh, getList } = tableMethods
 
 getList()
-const formatTime = (time: string) => {
-  return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
-}
 //表单列表设置
 const columns: TableColumn[] = [
   {
@@ -70,7 +68,7 @@ const columns: TableColumn[] = [
     label: '评价时间',
     slots: {
       default: (data) => {
-        return <div>{formatTime(data.row.createTime)}</div>
+        return <div>{formatToDateTime(data.row.createTime)}</div>
       }
     }
   },
