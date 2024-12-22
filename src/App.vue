@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useAppStore } from '@/store/modules/app'
 import { ConfigGlobal } from '@/components/ConfigGlobal'
 import { useDesign } from '@/hooks/web/useDesign'
-
+import BaiduMap from 'vue-baidu-map-3x'
 const { getPrefixCls } = useDesign()
 
 const prefixCls = getPrefixCls('app')

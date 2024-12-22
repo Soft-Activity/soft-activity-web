@@ -130,6 +130,14 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'location',
+        name: 'ActivityLocation',
+        component: () => import('@/views/Activity/ActivityLocation.vue'),
+        meta: {
+          title: '地点管理'
+        }
+      },
+      {
         path: 'list',
         name: 'ActivityList',
         component: () => import('@/views/Activity/ActivityList.vue'),

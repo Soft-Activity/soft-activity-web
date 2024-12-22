@@ -51,6 +51,16 @@ declare namespace API {
     capacity?: number
     /** 创建时间 */
     createTime?: string
+    /** 是否需要打卡 0否 1是 */
+    isCheckIn?: boolean
+    /** 打卡地点ID */
+    checkInLocationId?: number
+    /** 打卡范围(单位:米) */
+    checkInRadius?: number
+    /** 打卡开始时间 */
+    checkInStartTime?: string
+    /** 打卡结束时间 */
+    checkInEndTime?: string
   }
 
   type ActivityAiReviewCreateParam = {
@@ -165,6 +175,58 @@ declare namespace API {
     activityCount?: number
   }
 
+  type ActivityCheckInParam = {
+    /** 活动id */
+    activityId: number
+    gcj02Latitude?: number
+    gcj02Longitude?: number
+  }
+
+  type ActivityLocation = {
+    /** 主键ID */
+    locationId?: number
+    /** 地点名称 */
+    name?: string
+    /** 纬度 */
+    lat?: number
+    /** 经度 */
+    lng?: number
+    /** 创建时间 */
+    createTime?: string
+    /** 更新时间 */
+    updateTime?: string
+  }
+
+  type ActivityLocationQuery = {
+    /** 主键ID */
+    locationId?: number
+    /** 地点名称 */
+    name?: string
+    /** 纬度 */
+    lat?: number
+    /** 经度 */
+    lng?: number
+    /** 创建时间 */
+    createTime?: string
+    /** 更新时间 */
+    updateTime?: string
+  }
+
+  type ActivityLocationVO = {
+    /** 主键ID */
+    locationId?: number
+    /** 地点名称 */
+    name?: string
+    /** 纬度 */
+    lat?: number
+    /** 经度 */
+    lng?: number
+    /** 创建时间 */
+    createTime?: string
+    /** 更新时间 */
+    updateTime?: string
+  }
+
   type ActivityQuery = {
     /** 活动id */
     activityId?: number
@@ -190,6 +252,16 @@ declare namespace API {
     capacity?: number
     /** 创建时间 */
     createTime?: string
+    /** 是否需要打卡 0否 1是 */
+    isCheckIn?: boolean
+    /** 打卡地点ID */
+    checkInLocationId?: number
+    /** 打卡范围(单位:米) */
+    checkInRadius?: number
+    /** 打卡开始时间 */
+    checkInStartTime?: string
+    /** 打卡结束时间 */
+    checkInEndTime?: string
     /** 状态 */
     statuses?: number[]
     /** 分类名称 */
@@ -237,6 +309,16 @@ declare namespace API {
     capacity?: number
     /** 创建时间 */
     createTime?: string
+    /** 是否需要打卡 0否 1是 */
+    isCheckIn?: boolean
+    /** 打卡地点ID */
+    checkInLocationId?: number
+    /** 打卡范围(单位:米) */
+    checkInRadius?: number
+    /** 打卡开始时间 */
+    checkInStartTime?: string
+    /** 打卡结束时间 */
+    checkInEndTime?: string
     /** 分类名称 */
     categoryName?: string
     /** 组织者姓名 */
@@ -321,6 +403,10 @@ declare namespace API {
     id: number
   }
 
+  type deleteActivityLocationParams = {
+    id: number
+  }
+
   type deleteActivityParams = {
     id: number
   }
@@ -381,6 +467,16 @@ declare namespace API {
 
   type getActivityCategoryStatisticsParams = {
     param: ActivityCategoryStatQuery
+  }
+
+  type getActivityLocationParams = {
+    id: number
+  }
+
+  type getActivityLocationsParams = {
+    current?: number
+    pageSize?: number
+    param: ActivityLocationQuery
   }
 
   type getActivityParams = {
@@ -491,6 +587,11 @@ declare namespace API {
 
   type ListResultActivityCategoryVO = {
     list?: ActivityCategoryVO[]
+    total?: number
+  }
+
+  type ListResultActivityLocationVO = {
+    list?: ActivityLocationVO[]
     total?: number
   }
 
@@ -638,7 +739,7 @@ declare namespace API {
   type Registration = {
     /** 报名id */
     registrationId?: number
-    /** 学生学号 */
+    /** 学生用户id */
     studentId?: string
     /** 活动id */
     activityId?: number
@@ -646,12 +747,20 @@ declare namespace API {
     status?: number
     /** 报名时间 */
     createTime?: string
+    /** 是否已打卡 0未打卡 1已打卡 */
+    isCheckIn?: boolean
+    /** 打卡时间 */
+    checkInTime?: string
+    /** 打卡纬度 */
+    checkInLat?: number
+    /** 打卡经度 */
+    checkInLng?: number
   }
 
   type RegistrationQuery = {
     /** 报名id */
     registrationId?: number
-    /** 学生学号 */
+    /** 学生用户id */
     studentId?: string
     /** 活动id */
     activityId?: number
@@ -659,12 +768,20 @@ declare namespace API {
     status?: number
     /** 报名时间 */
     createTime?: string
+    /** 是否已打卡 0未打卡 1已打卡 */
+    isCheckIn?: boolean
+    /** 打卡时间 */
+    checkInTime?: string
+    /** 打卡纬度 */
+    checkInLat?: number
+    /** 打卡经度 */
+    checkInLng?: number
   }
 
   type RegistrationVO = {
     /** 报名id */
     registrationId?: number
-    /** 学生学号 */
+    /** 学生用户id */
     studentId?: string
     /** 活动id */
     activityId?: number
@@ -672,6 +789,14 @@ declare namespace API {
     status?: number
     /** 报名时间 */
     createTime?: string
+    /** 是否已打卡 0未打卡 1已打卡 */
+    isCheckIn?: boolean
+    /** 打卡时间 */
+    checkInTime?: string
+    /** 打卡纬度 */
+    checkInLat?: number
+    /** 打卡经度 */
+    checkInLng?: number
     /** 用户名 */
     userName?: string
     /** 学院名称 */
@@ -796,6 +921,10 @@ declare namespace API {
   }
 
   type updateActivityCategoryParams = {
+    id: number
+  }
+
+  type updateActivityLocationParams = {
     id: number
   }
 

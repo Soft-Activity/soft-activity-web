@@ -28,6 +28,21 @@ export async function cancelRegister(
   })
 }
 
+/** 打卡活动 POST /registration/check-in */
+export async function checkInActivity(
+  body: API.ActivityCheckInParam,
+  options?: { [key: string]: any }
+) {
+  return request<boolean>('/registration/check-in', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: body,
+    ...(options || {})
+  })
+}
+
 /** 删除指定报名表 DELETE /registration/delete/${param0} */
 export async function deleteRegistration(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

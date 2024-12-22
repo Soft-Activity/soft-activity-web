@@ -7,6 +7,7 @@ import * as student from './student'
 import * as role from './role'
 import * as registration from './registration'
 import * as comment from './comment'
+import * as activityLocation from './activityLocation'
 import * as activityCategory from './activityCategory'
 import * as activityAiReview from './activityAiReview'
 import * as activity from './activity'
@@ -20,6 +21,7 @@ export default {
   role,
   registration,
   comment,
+  activityLocation,
   activityCategory,
   activityAiReview,
   activity,

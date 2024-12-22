@@ -33,6 +33,7 @@ import App from './App.vue'
 
 import './permission'
 
+import BaiduMap from 'vue-baidu-map-3x'
 // 创建实例
 const setupAll = async () => {
   const app = createApp(App)
@@ -46,6 +47,10 @@ const setupAll = async () => {
   setupElementPlus(app)
 
   setupRouter(app)
+
+  app.use(BaiduMap, {
+    ak: 'WntfJW0mX8VdyjMqfaPEqfGmw2k31JyA'
+  })
 
   app.mount('#app')
 }
