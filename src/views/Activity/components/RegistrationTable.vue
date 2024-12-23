@@ -6,6 +6,8 @@ import { ContentWrap } from '@/components/ContentWrap'
 import { BaseButton } from '@/components/Button'
 import { getRegistrations } from '@/api/servers/api/registration'
 import dayjs from 'dayjs'
+import qs from 'query-string'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
   activityId: {
@@ -27,7 +29,7 @@ const { tableRegister, tableMethods, tableState } = useTable({
     const res = await getRegistrations({
       current: unref(currentPage),
       pageSize: unref(pageSize),
-      param: { activityId: props.activityId }
+      param: { activityId: props.activityId, status: 0 }
     })
     return {
       list: res.data?.list ?? [],
@@ -39,7 +41,7 @@ const { tableRegister, tableMethods, tableState } = useTable({
   }
 })
 const { loading, dataList, total, currentPage, pageSize } = tableState
-const { refresh, getList } = tableMethods
+const { refresh, getList, delColumn } = tableMethods
 
 getList()
 
@@ -57,20 +59,21 @@ const columns = ref<TableColumn[]>([
     field: 'collegeName',
     label: '学院'
   },
-  {
-    field: 'status',
-    label: '状态',
-    formatter: (row) => {
-      const statusMap = {
-        0: '已报名',
-        1: '已取消'
-      }
-      return statusMap[row.status] || '未知状态'
-    }
-  },
+  // {
+  //   field: 'status',
+  //   label: '状态',
+  //   formatter: (row) => {
+  //     const statusMap = {
+  //       0: '已报名',
+  //       1: '已取消'
+  //     }
+  //     return statusMap[row.status] || '未知状态'
+  //   }
+  // },
   {
     field: 'isCheckIn',
     label: '打卡状态',
+    hidden: !props.isCheckIn,
     slots: {
       default: (data) => {
         return <div>{data.row.isCheckIn ? '已打卡' : '未打卡'}</div>
@@ -104,17 +107,26 @@ const columns = ref<TableColumn[]>([
 ])
 loading.value = false
 const exportData = () => {
-  console.log('导出数据')
+  console.log('props.activityId', props.activityId)
+  if (!props.activityId) {
+    ElMessage.error('无活动ID')
+    return
+  }
+  try {
+    window.open(
+      qs.stringifyUrl({
+        url: `${import.meta.env.VITE_API_BASE_PATH}/registration/export/${props.activityId}`
+      })
+    )
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败')
+  }
 }
 const delData = (row: any) => {
   console.log('删除数据', row)
 }
-watch(props, (newVal) => {
-  console.log('newVal', newVal)
-  if (!newVal.isCheckIn) {
-    columns.value = columns.value.filter((item) => item.field !== 'isCheckIn')
-  }
-})
 </script>
 
 <template>

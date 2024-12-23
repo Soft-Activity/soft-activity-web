@@ -148,7 +148,7 @@ const checkInSchema = reactive<DescriptionsSchema[]>([
       default: (data) => {
         return (
           <div>
-            {data.checkInCount}/{data.maxCapacity}
+            {data.checkInCount}/{data.capacity}
           </div>
         )
       }

@@ -43,6 +43,20 @@ export async function checkInActivity(
   })
 }
 
+/** 是否已打卡 POST /registration/check-in/${param0} */
+export async function isCheckin(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.isCheckinParams,
+  options?: { [key: string]: any }
+) {
+  const { activityId: param0, ...queryParams } = params
+  return request<boolean>(`/registration/check-in/${param0}`, {
+    method: 'POST',
+    params: { ...queryParams },
+    ...(options || {})
+  })
+}
+
 /** 删除指定报名表 DELETE /registration/delete/${param0} */
 export async function deleteRegistration(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -52,6 +66,20 @@ export async function deleteRegistration(
   const { id: param0, ...queryParams } = params
   return request<boolean>(`/registration/delete/${param0}`, {
     method: 'DELETE',
+    params: { ...queryParams },
+    ...(options || {})
+  })
+}
+
+/** 导出活动报名人数列表 GET /registration/export/${param0} */
+export async function exportRegistrations(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.exportRegistrationsParams,
+  options?: { [key: string]: any }
+) {
+  const { activityId: param0, ...queryParams } = params
+  return request<any>(`/registration/export/${param0}`, {
+    method: 'GET',
     params: { ...queryParams },
     ...(options || {})
   })

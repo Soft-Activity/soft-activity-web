@@ -178,8 +178,10 @@ declare namespace API {
   type ActivityCheckInParam = {
     /** 活动id */
     activityId: number
-    gcj02Latitude?: number
-    gcj02Longitude?: number
+    /** 打卡经度 */
+    gcj02Longitude: number
+    /** 打卡纬度 */
+    gcj02Latitude: number
   }
 
   type ActivityLocation = {
@@ -272,6 +274,8 @@ declare namespace API {
     studentId?: string
     /** 参与学生是否评论 */
     isStudentComment?: boolean
+    /** 参与学生是否打卡 */
+    isStudentCheckIn?: boolean
     sorter?: Sorter
   }
 
@@ -329,6 +333,10 @@ declare namespace API {
     recentComments?: CommentVO[]
     /** 评论总数 */
     commentCount?: number
+    /** 已打卡人数 */
+    checkInCount?: number
+    /** 打卡地点名称 */
+    checkInLocationName?: string
   }
 
   type aiParams = {
@@ -433,6 +441,10 @@ declare namespace API {
 
   type downloadStudentExcelParams = {
     param: StudentQuery
+  }
+
+  type exportRegistrationsParams = {
+    activityId: number
   }
 
   type getAccountParams = {
@@ -565,6 +577,10 @@ declare namespace API {
   type ImportTotalResult = {
     success?: ImportRowResult[]
     failed?: ImportRowResult[]
+  }
+
+  type isCheckinParams = {
+    activityId: number
   }
 
   type isCommentParams = {

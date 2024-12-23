@@ -4,9 +4,10 @@ import { useTable } from '@/hooks/web/useTable'
 import { PropType, unref } from 'vue'
 import { ContentWrap } from '@/components/ContentWrap'
 import { BaseButton } from '@/components/Button'
-import { ElRate } from 'element-plus'
+import { ElMessage, ElRate } from 'element-plus'
 import { getComments } from '@/api/servers/api/comment'
 import { formatToDateTime } from '@/utils/dateUtil'
+import qs from 'query-string'
 
 const { activityId } = defineProps({
   activityId: {
@@ -92,6 +93,22 @@ loading.value = false
 
 const exportData = () => {
   console.log('导出数据')
+  console.log('props.activityId', activityId)
+  if (!activityId) {
+    ElMessage.error('无活动ID')
+    return
+  }
+  try {
+    window.open(
+      qs.stringifyUrl({
+        url: `${import.meta.env.VITE_API_BASE_PATH}/comment/export/${activityId}`
+      })
+    )
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败')
+  }
 }
 const delData = (row: Recordable) => {
   console.log('删除数据', row)
