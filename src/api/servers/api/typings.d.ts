@@ -443,6 +443,10 @@ declare namespace API {
     param: StudentQuery
   }
 
+  type exportCommentParams = {
+    activityId: number
+  }
+
   type exportRegistrationsParams = {
     activityId: number
   }

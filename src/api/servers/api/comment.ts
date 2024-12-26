@@ -28,6 +28,20 @@ export async function deleteComment(
   })
 }
 
+/** 导出评论 GET /comment/export/${param0} */
+export async function exportComment(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.exportCommentParams,
+  options?: { [key: string]: any }
+) {
+  const { activityId: param0, ...queryParams } = params
+  return request<any>(`/comment/export/${param0}`, {
+    method: 'GET',
+    params: { ...queryParams },
+    ...(options || {})
+  })
+}
+
 /** 获取指定信息 GET /comment/info/${param0} */
 export async function getComment(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

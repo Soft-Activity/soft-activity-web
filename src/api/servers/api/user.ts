@@ -116,6 +116,14 @@ export async function getUsers(
   })
 }
 
+/** 获取积极用户列表 GET /user/list-all-attendance */
+export async function getAllAttendanceUsers(options?: { [key: string]: any }) {
+  return request<API.ListResultUserVO>('/user/list-all-attendance', {
+    method: 'GET',
+    ...(options || {})
+  })
+}
+
 /** 用户账号密码登录 POST /user/login-by-password */
 export async function loginByPassword(
   body: API.UserPasswordLoginDTO,

@@ -227,7 +227,7 @@ const schema = reactive<FormSchema[]>([
   },
   {
     field: 'isCheckIn',
-    label: '是否需要打卡',
+    label: 'Student Check-in',
     component: 'Switch',
     value: false,
     componentProps: {
@@ -359,7 +359,7 @@ const submit = async () => {
     return formData
   } else {
     console.log('error')
-    throw new Error('表单验证失败')
+    throw new Error('表单验证失���')
   }
 }
 
@@ -414,6 +414,20 @@ const fetchCategories = async () => {
 
 // 在适当的地方调用fetchCategories
 fetchCategories()
+
+// Check-in related constants
+const CHECKIN_STATUS = {
+  NOT_CHECKED: 0, // 未打卡
+  CHECKED: 1 // 已打卡
+}
+
+// Check-in related types
+interface CheckInData {
+  isCheckIn: boolean
+  checkInTime: string
+  checkInLocation: string
+  checkInRadius: number
+}
 </script>
 
 <template>

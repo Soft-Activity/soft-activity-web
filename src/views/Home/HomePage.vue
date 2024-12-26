@@ -8,6 +8,7 @@ import { getActivityCategoryStatistics } from '@/api/servers/api/activityCategor
 import { ECOption } from '@/components/Echart'
 import { getActivityRecentMonthStatistics, getActivitys } from '@/api/servers/api/activity'
 import { formatToDateTime } from '@/utils/dateUtil'
+import DiligentUsers from './components/DiligentUsers.vue'
 
 const loading = ref(false)
 
@@ -295,6 +296,7 @@ onMounted(() => {
       </ElCard>
     </ElCol>
   </ElRow>
+  <DiligentUsers />
 </template>
 
 <style scoped>
